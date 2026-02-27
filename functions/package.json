@@ -15,7 +15,9 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "firebase-admin": "^13.7.0",
-    "firebase-functions": "^7.0.6"
+    "firebase-functions": "^7.0.6",
+    "groq-sdk": "^0.37.0",
+    "retry-axios": "^4.0.1"
   },
   "devDependencies": {
     "firebase-functions-test": "^3.4.1"
