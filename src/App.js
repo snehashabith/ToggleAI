@@ -4,44 +4,23 @@ import Sidebar from './components/Sidebar';
 import PromptPage from './components/PromptPage';
 import Login from './Login';
 
-// Firebase authentication
-import { auth } from './firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth, db } from './firebase';
+import { onAuthStateChanged, signOut, deleteUser } from 'firebase/auth';
+import { doc, getDoc, setDoc, onSnapshot, collection, query, orderBy, addDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 
 function App() {
   const [user, setUser] = useState(null);
-  const [chats, setChats] = useState([
-    {
-      id: 1,
-      title: 'How to optimize React apps',
-      timestamp: new Date(Date.now() - 86400000),
-      model: 'GPT-4',
-    },
-    {
-      id: 2,
-      title: 'Machine Learning basics',
-      timestamp: new Date(Date.now() - 172800000),
-      model: 'Claude',
-    },
-    {
-      id: 3,
-      title: 'Web design trends 2024',
-      timestamp: new Date(Date.now() - 259200000),
-      model: 'GPT-4',
-    },
-  ]);
+  const [chats, setChats] = useState([]); // Start empty, let Firestore populate this
   const [savings, setSavings] = useState({
-    tokensUsed: 15420,
-    costSaved: 42.50,
-    queriesProcessed: 234,
-    timeFreed: 8.5,
+    tokensUsed: 0, costSaved: 0, queriesProcessed: 0, timeFreed: 0,
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeChat, setActiveChat] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
 
+  // AUTH & SAVINGS INITIALIZATION
   useEffect(() => {
-    // listen for Firebase auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
         setUser({
           id: fbUser.uid,
@@ -49,6 +28,15 @@ function App() {
           email: fbUser.email,
           avatar: fbUser.photoURL ? <img src={fbUser.photoURL} alt="avatar" /> : '👤',
         });
+
+        // Ensure savings record exists
+        const savingsRef = doc(db, 'savings', fbUser.uid);
+        const savingsSnap = await getDoc(savingsRef);
+        if (!savingsSnap.exists()) {
+          await setDoc(savingsRef, {
+            tokensUsed: 0, costSaved: 0, queriesProcessed: 0, timeFreed: 0, createdAt: serverTimestamp(),
+          });
+        }
       } else {
         setUser(null);
       }
@@ -56,52 +44,85 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  const handleNewChat = () => {
-    setActiveChat(null);
-  };
+  // LISTENER: Global Savings Stats
+  useEffect(() => {
+    if (!user) return;
+    const unsub = onSnapshot(doc(db, 'savings', user.id), (snap) => {
+      if (snap.exists()) setSavings(snap.data());
+    });
+    return () => unsub();
+  }, [user]);
 
-  const handleSelectChat = (chatId) => {
-    setActiveChat(chatId);
-  };
+  // LISTENER: User's Chat List (Sidebar)
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'users', user.id, 'chats'), orderBy('timestamp', 'desc'));
+    const unsub = onSnapshot(q, (snap) => {
+      setChats(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, [user]);
 
-  const handleAddChat = (title, model) => {
-    const newChat = {
-      id: chats.length + 1,
-      title,
-      timestamp: new Date(),
-      model,
-    };
-    setChats([newChat, ...chats]);
-    setActiveChat(newChat.id);
-  };
-
-  const handleDeleteChat = (chatId) => {
-    setChats(chats.filter(chat => chat.id !== chatId));
-    if (activeChat === chatId) {
-      setActiveChat(null);
+  // LISTENER: Active Chat Messages
+  useEffect(() => {
+    if (!user || !activeChat) {
+      setChatMessages([]);
+      return;
     }
+    const msgsRef = collection(db, 'users', user.id, 'chats', String(activeChat), 'messages');
+    const q = query(msgsRef, orderBy('timestamp', 'asc'));
+    const unsub = onSnapshot(q, (snap) => {
+      setChatMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, [user, activeChat]);
+
+  // HANDLERS
+  const handleSendMessage = async (text) => {
+    if (!user || !text.trim()) return;
+
+    let currentChatId = activeChat;
+
+    // 1. Create chat if it doesn't exist
+    if (!currentChatId) {
+      const newChatRef = doc(collection(db, 'users', user.id, 'chats'));
+      currentChatId = newChatRef.id;
+      await setDoc(newChatRef, {
+        title: text.substring(0, 30),
+        timestamp: serverTimestamp(),
+        model: 'GPT-4o-mini',
+        summary: 'New conversation starting...'
+      });
+      setActiveChat(currentChatId);
+    }
+
+    // 2. Add User Message
+    const msgsRef = collection(db, 'users', user.id, 'chats', currentChatId, 'messages');
+    await addDoc(msgsRef, {
+      text,
+      sender: 'user',
+      timestamp: serverTimestamp(),
+    });
+
+    // 3. Person A's backend will listen to this collection and add the 'assistant' reply
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => signOut(auth);
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Delete everything? This cannot be undone.')) return;
+    const currentUser = auth.currentUser;
     try {
-      await signOut(auth);
+      await deleteDoc(doc(db, 'savings', currentUser.uid));
+      await deleteDoc(doc(db, 'users', currentUser.uid));
+      await deleteUser(currentUser);
       setUser(null);
     } catch (err) {
-      console.error('Logout failed', err);
-      alert('Logout failed');
+      if (err.code === 'auth/requires-recent-login') alert("Please re-login to delete.");
     }
   };
 
-  const handleDeleteAccount = () => {
-    if (window.confirm('Are you sure? This cannot be undone.')) {
-      alert('Account deleted');
-      // Implement delete account logic
-    }
-  };
-
-  if (!user) {
-    return <Login />;
-  }
+  if (!user) return <Login />;
 
   return (
     <div className="app-container">
@@ -110,20 +131,19 @@ function App() {
         user={user}
         chats={chats}
         activeChat={activeChat}
-        onNewChat={handleNewChat}
-        onSelectChat={handleSelectChat}
-        onDeleteChat={handleDeleteChat}
+        onNewChat={() => setActiveChat(null)}
+        onSelectChat={setActiveChat}
         onLogout={handleLogout}
         onDeleteAccount={handleDeleteAccount}
       />
-
       <main className={`main-content ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
         <PromptPage
           sidebarOpen={sidebarOpen}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           savings={savings}
           activeChat={activeChat}
-          onAddChat={handleAddChat}
+          chatMessages={chatMessages}
+          onSendMessage={handleSendMessage}
         />
       </main>
     </div>

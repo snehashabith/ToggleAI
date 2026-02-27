@@ -3,29 +3,8 @@ import { Send, Menu, BarChart3, MessageCircle, Zap, Clock, DollarSign } from 'lu
 import { motion } from 'framer-motion';
 import SavingsDashboard from './SavingsDashboard';
 
-function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, onAddChat }) {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: 'Hello! I\'m ToggleAI, your AI proxy assistant. I can help you optimize API costs by routing your requests to the most efficient models.',
-      sender: 'assistant',
-      model: 'Claude',
-      timestamp: new Date(),
-    },
-    {
-      id: 2,
-      text: 'That sounds amazing! How does it work exactly?',
-      sender: 'user',
-      timestamp: new Date(),
-    },
-    {
-      id: 3,
-      text: 'I analyze your queries and automatically select the best model for your needs. Some queries might be better handled by smaller, faster models, while others need GPT-4\'s advanced reasoning. This saves you money while maintaining quality!',
-      sender: 'assistant',
-      model: 'Claude',
-      timestamp: new Date(),
-    },
-  ]);
+function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, chatMessages = [], onSendMessage, onAddChat }) {
+  const [messages, setMessages] = useState(chatMessages);
 
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -39,35 +18,18 @@ function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, onAddCh
     scrollToBottom();
   }, [messages]);
 
+  // sync with messages coming from parent listener
+  useEffect(() => {
+    setMessages(chatMessages);
+  }, [chatMessages]);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
-    // Add user message
-    const userMessage = {
-      id: messages.length + 1,
-      text: inputValue,
-      sender: 'user',
-      timestamp: new Date(),
-    };
-
-    setMessages([...messages, userMessage]);
+    // push text up to parent which will write to Firestore and manage reply
+    onSendMessage(inputValue);
     setInputValue('');
-    setIsLoading(true);
-
-    // Simulate API response - replace with actual api call
-    setTimeout(() => {
-      const assistantMessage = {
-        id: messages.length + 2,
-        text: 'This is a simulated response from the AI. In production, this would connect to your actual AI models through the ToggleAI proxy server. The system would analyze your query and route it to the most cost-effective model.',
-        sender: 'assistant',
-        model: 'GPT-4',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-      onAddChat(`Chat about "${inputValue.substring(0, 30)}..."`, assistantMessage.model);
-      setIsLoading(false);
-    }, 1500);
   };
 
   return (
