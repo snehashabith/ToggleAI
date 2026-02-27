@@ -5,7 +5,8 @@ import PromptPage from './components/PromptPage';
 import Login from './Login';
 
 import { auth, db } from './firebase';
-import { onAuthStateChanged, signOut, deleteUser } from 'firebase/auth';
+import { onAuthStateChanged, signOut, deleteUser,signInWithRedirect, 
+  getRedirectResult, } from 'firebase/auth';
 import { doc, getDoc, setDoc, onSnapshot, collection, query, orderBy, addDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 
 function App() {
@@ -90,7 +91,7 @@ function App() {
       await setDoc(newChatRef, {
         title: text.substring(0, 30),
         timestamp: new Date(),
-        model: 'GPT-4o-mini',
+        model: 'groq',
         summary: 'New conversation starting...'
       });
       setActiveChat(currentChatId);
@@ -110,6 +111,7 @@ function App() {
         process.env.REACT_APP_ANALYZE_ENDPOINT ||
           'https://us-central1-YO.cloudfunctions.net/analyzePrompt',
         {
+          cors: true,
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

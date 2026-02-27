@@ -51,10 +51,14 @@ function cosineSimilarity(vecA, vecB) {
 
 // 🚀 Main Function: smartProxy
 exports.smartProxy = onRequest({
+    cors: true,
     timeoutSeconds: 60,
     memory: "512MiB",
     secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
+    // set COOP/COEP headers before doing anything else
+    setSecurityHeaders(res);
+
     // 💡 Expecting userId in the request body
     const { prompt, userId } = req.body;
     if (!prompt || !userId) return res.status(400).send("Missing prompt or userId");
@@ -92,6 +96,7 @@ exports.smartProxy = onRequest({
         });
 
         const generatedText = chatCompletion.choices[0]?.message?.content;
+        console.log("Model Response (${modelToUse}):",generatedText);
         const usage = chatCompletion.usage;
         
         // 💡 Basic Cost Saving Calculation (Compared to expensive model)
@@ -111,13 +116,17 @@ exports.smartProxy = onRequest({
 // alternative endpoint that also writes assistant replies into Firestore (HTTP trigger)
 // make sure GROQ_API_KEY is available to this function as well
 exports.analyzePrompt = onRequest({
+    cors: true,
     secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
+    // add security headers for COOP/COEP
+    setSecurityHeaders(res);
+
     const { userId, chatId, prompt } = req.body;
     if (!userId || !chatId || !prompt) return res.status(400).send('missing fields');
 
     try {
-        const model = pickModel(prompt);
+        const model = modelToUse;
         const reply = await generateResponse(prompt, model);
 
         await db
