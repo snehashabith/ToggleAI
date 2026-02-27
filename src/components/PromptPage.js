@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Menu, BarChart3, MessageCircle, Zap, Clock, DollarSign } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SavingsDashboard from './SavingsDashboard';
 
