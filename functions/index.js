@@ -1,57 +1,152 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore"); // Add this line
 const Groq = require("groq-sdk");
+const { pipeline } = require('@xenova/transformers');
+// 💡 Pre-calculated embeddings file
+const trainedEmbeddings = require('./trained_embeddings.json');
 
-// Initialize Firebase Admin (safe to do at top level)
-if (admin.apps.length === 0) {
-    admin.initializeApp();
-}
+admin.initializeApp();
 const db = admin.firestore();
 
-// 🚀 Main Function
+// 🚀 Local Embedding Model Pipeline (Runs once on cold start)
+let embedder;
+async function getEmbedder() {
+    if (!embedder) {
+        embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    }
+    return embedder;
+}
+
+// 💡 Simple Vector Similarity Function
+function cosineSimilarity(vecA, vecB) {
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    for (let i = 0; i < vecA.length; i++) {
+        dotProduct += vecA[i] * vecB[i];
+        normA += vecA[i] * vecA[i];
+        normB += vecB[i] * vecB[i];
+    }
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+// 🚀 Main Function: smartProxy
 exports.smartProxy = onRequest({
     timeoutSeconds: 60,
-    memory: "256MiB",
-    secrets: ["GROQ_API_KEY"] // Make sure you set this via firebase functions:secrets:set
+    memory: "512MiB",
+    secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
-    // 💡 MOVE INITIALIZATION HERE
-    // Now it only runs when the secret is available
-    const groq = new Groq({
-        apiKey: process.env.GROQ_API_KEY
-    });
-
-    const prompt = req.body.prompt;
-    if (!prompt) return res.status(400).send("No prompt");
-
-    // 1. Check Cache
-    const safeDocId = Buffer.from(prompt).toString('base64').substring(0, 50);
-    const cacheRef = db.collection("promptCache").doc(safeDocId);
+    // 💡 Expecting userId in the request body
+    const { prompt, userId } = req.body;
+    if (!prompt || !userId) return res.status(400).send("Missing prompt or userId");
 
     try {
-        const doc = await cacheRef.get();
-        if (doc.exists) {
-            return res.status(200).json({ response: doc.data().response, cached: true });
+        // 1. Semantic Routing
+        const pipe = await getEmbedder();
+        const userInputEmbedding = await pipe(prompt, { pooling: 'mean', normalize: true });
+        const userVec = userInputEmbedding.data;
+
+        let bestRoute = "cheap";
+        let maxSimilarity = -1;
+        const threshold = 0.5;
+
+        for (const [routeName, examples] of Object.entries(trainedEmbeddings)) {
+            for (const example of examples) {
+                const similarity = cosineSimilarity(userVec, example.vector);
+                if (similarity > maxSimilarity) {
+                    maxSimilarity = similarity;
+                    bestRoute = routeName;
+                }
+            }
         }
 
-        // 2. Call Groq
+        console.log(`🧠 Router Decision: ${bestRoute} (Score: ${maxSimilarity.toFixed(2)})`);
+
+        // 2. Model Selection
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        let modelToUse = (bestRoute === "smart") ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant";
+
+        // 3. Call Groq
         const chatCompletion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
-            model: "llama-3.3-70b-versatile",
+            model: modelToUse,
         });
 
-        const generatedText = chatCompletion.choices[0]?.message?.content || "";
+        const generatedText = chatCompletion.choices[0]?.message?.content;
+        const usage = chatCompletion.usage;
+        
+        // 💡 Basic Cost Saving Calculation (Compared to expensive model)
+        const tokens = usage.total_tokens;
+        const calculatedSavings = (tokens / 1000000) * 5.00; 
 
-        // 3. Save Cache
-        await cacheRef.set({
-            prompt: prompt,
-            response: generatedText,
-            timestamp: admin.firestore.FieldValue.serverTimestamp()
-        });
+        // 4. Update Metrics (User + Global) using Transaction
+        await updateMetricsTransaction(userId, tokens, calculatedSavings);
 
-        return res.status(200).json({ response: generatedText, cached: false });
+        return res.status(200).json({ response: generatedText, modelUsed: modelToUse });
 
     } catch (error) {
-        console.error("❌ Groq Error:", error);
+        console.error("❌ Error:", error);
         return res.status(500).json({ error: error.message });
     }
 });
+
+// 🚀 Function: summarizeChat
+exports.summarizeChat = onRequest(async (req, res) => {
+    const { userId, chatId } = req.body;
+    if (!userId || !chatId) return res.status(400).send("Missing userId or chatId");
+
+    const messagesRef = db.collection("users").doc(userId).collection("chats").doc(chatId).collection("messages");
+
+    try {
+        // 1. Fetch all messages
+        const snapshot = await messagesRef.orderBy("timestamp").get();
+        const chatHistory = snapshot.docs.map(doc => doc.data().content).join("\n");
+
+        // 2. Call Groq for summary (Cheap model)
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        const summaryCompletion = await groq.chat.completions.create({
+            messages: [
+                { role: "system", content: "Summarize this chat history concisely." },
+                { role: "user", content: chatHistory }
+            ],
+            model: "llama-3.1-8b-instant",
+        });
+
+        const summary = summaryCompletion.choices[0].message.content;
+
+        // 3. Store summary
+        await db.collection("users").doc(userId).collection("chats").doc(chatId).update({
+            summary: summary,
+            lastSummarized: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        return res.status(200).json({ summary });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+});
+
+// 💡 Helper to handle Firestore Transactions
+async function updateMetricsTransaction(userId, tokens, savings) {
+    const userStatsRef = db.collection("users").doc(userId).collection("stats").doc("usage");
+    const globalStatsRef = db.collection("stats").doc("global");
+
+    // ... inside updateMetricsTransaction ...
+
+await db.runTransaction(async (transaction) => {
+    // Update User
+    transaction.set(userStatsRef, {
+        tokensUsed: FieldValue.increment(tokens), // Change here
+        costSaved: FieldValue.increment(savings),  // Change here
+        queriesProcessed: FieldValue.increment(1)  // Change here
+    }, { merge: true });
+
+    // Update Global
+    transaction.set(globalStatsRef, {
+        tokensUsed: FieldValue.increment(tokens), // Change here
+        costSaved: FieldValue.increment(savings),  // Change here
+        queriesProcessed: FieldValue.increment(1)  // Change here
+    }, { merge: true });
+});
+}
