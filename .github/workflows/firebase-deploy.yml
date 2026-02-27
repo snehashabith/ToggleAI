@@ -25,4 +25,4 @@ jobs:
           pip install -r requirements.txt
 
       - name: Deploy to Firebase
-        run: firebase deploy --only functions,firestore --token "${{ secrets.FIREBASE_TOKEN }}"
+        run: firebase deploy --only functions,firestore --token "${{ secrets.FIRE_BASE}}"
