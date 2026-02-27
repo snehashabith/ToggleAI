@@ -1,15 +1,33 @@
 import React, { useState } from 'react';
-import { auth, googleProvider,db } from './firebase';
+import { auth, googleProvider, db } from './firebase';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
   setPersistence,
   browserLocalPersistence,
+  sendEmailVerification 
 } from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore'; 
 import './Login.css';
-import { doc,setDoc } from '@firebase/firestore';
-//import { createDeflate } from 'node:zlib';
+
+// default savings template used for new accounts
+const DEFAULT_SAVINGS = {
+  tokensUsed: 0,
+  costSaved: 0,
+  queriesProcessed: 0,
+  timeFreed: 0,
+  createdAt: new Date(),
+};
+
+async function ensureSavingsRecord(uid) {
+  const ref = doc(db, 'savings', uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    await setDoc(ref, DEFAULT_SAVINGS);
+  }
+}
+
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -18,6 +36,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -27,42 +46,24 @@ function Login() {
       await setPersistence(auth, browserLocalPersistence);
       
       if (isSignUp) {
-        // Sign up
+        
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        console.log('User created:', userCredential.user);
         const user = userCredential.user;
-        const sendEmailVerification = await user.sendEmailVerification();
-        console.log('Verification email sent:', sendEmailVerification);
 
-
+        
+        await sendEmailVerification(user);
         await setDoc(doc(db, 'users', user.uid), {
-            uid: user.uid,
-            email: user.email,
-            createdAt: new Date()});
+          uid: user.uid,
+          email: user.email,
+          createdAt: new Date(),
+          photoURL: '',
+          provider: 'password'
+        }, { merge: true });
+        // ensure savings record exists for new user
+        await ensureSavingsRecord(user.uid);
 
       } else {
-        // Sign in
-        const handleGoogleLogin = async () => {
-  if (loading) return; // prevent double clicks
-  setLoading(true);
-  setError('');
-
-  try {
-    await setPersistence(auth, browserLocalPersistence);
-
-    const result = await signInWithPopup(auth, googleProvider);
-    console.log("Google user:", result.user);
-
-  } catch (err) {
-    if (err.code === "auth/popup-closed-by-user") {
-      setError("Login cancelled. Please try again.");
-    } else {
-      setError(err.message);
-    }
-  } finally {
-    setLoading(false);
-  }
-};
+        await signInWithEmailAndPassword(auth, email, password);
       }
     } catch (err) {
       setError(err.message);
@@ -72,29 +73,47 @@ function Login() {
   };
 
   const handleGoogleLogin = async () => {
+    if (loading) return;
     setLoading(true);
     setError('');
 
     try {
       await setPersistence(auth, browserLocalPersistence);
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      await setDoc(userDocRef, {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        lastLogin: new Date(),
+        ...(!userDocSnap.exists() && { createdAt: new Date() }),
+        provider: 'google'
+      }, { merge: true });
+      
+      await ensureSavingsRecord(user.uid);
+
     } catch (err) {
-      setError(err.message);
+      if (err.code !== "auth/popup-closed-by-user") {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  };;;
 
   return (
     <div className="login-container">
       <div className="login-card">
-        {/* Hero Section */}
         <div className="login-hero">
           <h1 className="login-title">ToggleAI</h1>
           <p className="login-subtitle">Your intelligent AI companion</p>
         </div>
 
-        {/* Form Section */}
         <div className="login-form-section">
           <h2 className="form-title">
             {isSignUp ? 'Create Account' : 'Welcome Back'}
@@ -172,7 +191,7 @@ function Login() {
           </div>
         </div>
 
-        {/* Footer */}
+        
         <div className="login-footer">
           <p>By signing in, you agree to our Terms of Service and Privacy Policy</p>
         </div>

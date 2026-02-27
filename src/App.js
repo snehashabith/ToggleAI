@@ -5,8 +5,9 @@ import PromptPage from './components/PromptPage';
 import Login from './Login';
 
 // Firebase authentication
-import { auth } from './firebase';
+import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -31,17 +32,17 @@ function App() {
     },
   ]);
   const [savings, setSavings] = useState({
-    tokensUsed: 15420,
-    costSaved: 42.50,
-    queriesProcessed: 234,
-    timeFreed: 8.5,
+    tokensUsed: 0,
+    costSaved: 0,
+    queriesProcessed: 0,
+    timeFreed: 0,
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeChat, setActiveChat] = useState(null);
 
   useEffect(() => {
     // listen for Firebase auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
         setUser({
           id: fbUser.uid,
@@ -49,8 +50,36 @@ function App() {
           email: fbUser.email,
           avatar: fbUser.photoURL ? <img src={fbUser.photoURL} alt="avatar" /> : '👤',
         });
+
+        // check if savings record exists for this user, create if missing
+        try {
+          const savingsRef = doc(db, 'savings', fbUser.uid);
+          const savingsSnap = await getDoc(savingsRef);
+          if (savingsSnap.exists()) {
+            setSavings(savingsSnap.data());
+          } else {
+            const defaultSavings = {
+              tokensUsed: 0,
+              costSaved: 0,
+              queriesProcessed: 0,
+              timeFreed: 0,
+              createdAt: new Date(),
+            };
+            await setDoc(savingsRef, defaultSavings);
+            setSavings(defaultSavings);
+          }
+        } catch (err) {
+          console.error('Error loading savings record', err);
+        }
       } else {
         setUser(null);
+        // reset savings when logged out
+        setSavings({
+          tokensUsed: 0,
+          costSaved: 0,
+          queriesProcessed: 0,
+          timeFreed: 0,
+        });
       }
     });
     return () => unsubscribe();
