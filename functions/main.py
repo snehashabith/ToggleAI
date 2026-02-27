@@ -5,6 +5,16 @@ from semantic_router import Route
 from semantic_router.layer import RouteLayer
 from semantic_router.encoders import HuggingFaceEncoder
 
+# --- ADDED FOR STEP 5 ---
+import firebase_admin
+from firebase_admin import firestore
+from datetime import datetime
+
+# Initialize Firebase Admin SDK
+firebase_admin.initialize_app()
+db = firestore.client()
+# ------------------------
+
 # 1. Define Routes for Semantic Router
 # This classifies request intent without expensive LLM calls
 easy_task = Route(name="easy", utterances=["summarize", "check grammar", "translate", "general chat"])
@@ -59,6 +69,17 @@ def smart_proxy(req: https_fn.Request) -> https_fn.Response:
     )
     
     # Step 5: Log usage for Person B's Dashboard (Firestore)
-    # (Firestore write code goes here)
+    usage_data = {
+        "timestamp": datetime.now(),
+        "input_length": len(user_input),
+        "intent_route": route.name,
+        "model_used": model,
+        "prompt_tokens": final_response.usage.prompt_tokens,
+        "completion_tokens": final_response.usage.completion_tokens,
+        "total_tokens": final_response.usage.total_tokens
+    }
+    
+    # Write to Firestore collection named 'api_usage'
+    db.collection("api_usage").add(usage_data)
     
     return https_fn.Response(final_response.choices[0].message.content)
