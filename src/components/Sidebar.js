@@ -55,7 +55,7 @@ function Sidebar({
                   <div className="chat-info">
                     <p className="chat-title">{chat.title}</p>
                     <p className="chat-meta">
-                      {chat.timestamp.toLocaleDateString()} · {chat.model}
+                      {chat.timestamp?.toDate?.() ? chat.timestamp.toDate().toLocaleDateString() : 'Just now...'}
                     </p>
                   </div>
                   <button
