@@ -1,21 +1,64 @@
-# Welcome to Cloud Functions for Firebase for Python!
-# To get started, simply uncomment the below code or create your own.
-# Deploy with `firebase deploy`
-
+import os
+import litellm
 from firebase_functions import https_fn
-from firebase_functions.options import set_global_options
-from firebase_admin import initialize_app
+from semantic_router import Route
+from semantic_router.layer import RouteLayer
+from semantic_router.encoders import HuggingFaceEncoder
 
-# For cost control, you can set the maximum number of containers that can be
-# running at the same time. This helps mitigate the impact of unexpected
-# traffic spikes by instead downgrading performance. This limit is a per-function
-# limit. You can override the limit for each function using the max_instances
-# parameter in the decorator, e.g. @https_fn.on_request(max_instances=5).
-set_global_options(max_instances=10)
+# 1. Define Routes for Semantic Router
+# This classifies request intent without expensive LLM calls
+easy_task = Route(name="easy", utterances=["summarize", "check grammar", "translate", "general chat"])
+hard_task = Route(name="hard", utterances=["complex logic", "debug code", "architect system", "detailed analysis"])
 
-# initialize_app()
-#
-#
-# @https_fn.on_request()
-# def on_request_example(req: https_fn.Request) -> https_fn.Response:
-#     return https_fn.Response("Hello world!")
+encoder = HuggingFaceEncoder()
+router = RouteLayer(encoder=encoder, routes=[easy_task, hard_task])
+
+# 2. Simplifier Function
+# Uses Flash to boil down large prompts into their 'Core Intent'
+def simplify_prompt(large_text):
+    simplifier_prompt = f"""Summarize the core request and essential facts from the text below. 
+    Remove all fluff, legal disclaimers, and repetition. 
+    Output only the 'Core Intent' in less than 200 words.
+    
+    TEXT: {large_text[:30000]}""" # Keep context tight
+    
+    response = litellm.completion(
+        model="gemini/gemini-1.5-flash", 
+        messages=[{"role": "user", "content": simplifier_prompt}]
+    )
+    return response.choices[0].message.content
+
+# 3. Main Proxy Function
+@https_fn.on_request()
+def smart_proxy(req: https_fn.Request) -> https_fn.Response:
+    data = req.get_json()
+    user_input = data.get("prompt")
+    
+    # Step 1: Simplify to save tokens
+    core_intent = simplify_prompt(user_input)
+    
+    # Step 2: Route based on the simplified concept
+    route = router(core_intent)
+    
+    # Step 3: Select Gemini model and constraints
+    if route.name == "hard":
+        model = "gemini/gemini-1.5-pro"  # Use Pro for logic
+        system_instruction = "You are an expert analyst. Be precise."
+    else:
+        model = "gemini/gemini-1.5-flash" # Use Flash for speed
+        system_instruction = "You are a fast, helpful assistant. Stick to facts."
+
+    # Step 4: Final Generation with hallucination guard (low temp)
+    final_response = litellm.completion(
+        model=model,
+        messages=[
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": f"Task: {core_intent}\n\nFull Context: {user_input}"}
+        ],
+        temperature=0.1 # Lower temp = less hallucination
+    )
+    
+    # Step 5: Log usage for Person B's Dashboard (Firestore)
+    # (Firestore write code goes here)
+    
+    return https_fn.Response(final_response.choices[0].message.content)
