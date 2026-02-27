@@ -1,18 +1,22 @@
 const { onRequest } = require("firebase-functions/v2/https");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
-const { FieldValue } = require("firebase-admin/firestore"); // Add this line
+const { FieldValue } = require("firebase-admin/firestore");
 const Groq = require("groq-sdk");
 const { pipeline } = require('@xenova/transformers');
+const functions = require("firebase-functions");
+
 // 💡 Pre-calculated embeddings file
 const trainedEmbeddings = require('./trained_embeddings.json');
 
 admin.initializeApp();
 const db = admin.firestore();
 
+// --------------------------------------------------
+// HELPERS
+// --------------------------------------------------
 
-
-
-// helper to generate a response; allows reuse from different endpoints
+// helper to generate a response
 async function generateResponse(prompt, model) {
     if (!process.env.GROQ_API_KEY) {
         throw new Error('GROQ_API_KEY is not set');
@@ -27,7 +31,7 @@ async function generateResponse(prompt, model) {
     return completion.choices[0]?.message?.content || '';
 }
 
-// 🚀 Local Embedding Model Pipeline (Runs once on cold start)
+// Local Embedding Model Pipeline (Runs once on cold start)
 let embedder;
 async function getEmbedder() {
     if (!embedder) {
@@ -36,7 +40,7 @@ async function getEmbedder() {
     return embedder;
 }
 
-// 💡 Simple Vector Similarity Function
+// Simple Vector Similarity Function
 function cosineSimilarity(vecA, vecB) {
     let dotProduct = 0;
     let normA = 0;
@@ -49,17 +53,45 @@ function cosineSimilarity(vecA, vecB) {
     return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-// 🚀 Main Function: smartProxy
+function setSecurityHeaders(res) {
+    res.set("Cross-Origin-Opener-Policy", "same-origin");
+    res.set("Cross-Origin-Embedder-Policy", "require-corp");
+}
+
+async function updateMetricsTransaction(userId, tokens, savings) {
+    const userStatsRef = db.collection("users").doc(userId).collection("stats").doc("usage");
+    const globalStatsRef = db.collection("stats").doc("global");
+
+    await db.runTransaction(async (transaction) => {
+        // Update User
+        transaction.set(userStatsRef, {
+            tokensUsed: FieldValue.increment(tokens),
+            costSaved: FieldValue.increment(savings),
+            queriesProcessed: FieldValue.increment(1)
+        }, { merge: true });
+
+        // Update Global
+        transaction.set(globalStatsRef, {
+            tokensUsed: FieldValue.increment(tokens),
+            costSaved: FieldValue.increment(savings),
+            queriesProcessed: FieldValue.increment(1)
+        }, { merge: true });
+    });
+}
+
+// --------------------------------------------------
+// ENDPOINTS
+// --------------------------------------------------
+
+// Main Function: smartProxy
 exports.smartProxy = onRequest({
     cors: true,
     timeoutSeconds: 60,
     memory: "512MiB",
     secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
-    // set COOP/COEP headers before doing anything else
     setSecurityHeaders(res);
 
-    // 💡 Expecting userId in the request body
     const { prompt, userId } = req.body;
     if (!prompt || !userId) return res.status(400).send("Missing prompt or userId");
 
@@ -83,7 +115,13 @@ exports.smartProxy = onRequest({
             }
         }
 
-        console.log(`🧠 Router Decision: ${bestRoute} (Score: ${maxSimilarity.toFixed(2)})`);
+        // 🛡️ ENFORCED THRESHOLD CHECK
+        if (maxSimilarity < threshold) {
+            bestRoute = "cheap";
+            console.log(`🛡️ Threshold not met (${maxSimilarity.toFixed(2)} < ${threshold}). Falling back to cheap.`);
+        } else {
+            console.log(`🧠 Router Decision: ${bestRoute} (Score: ${maxSimilarity.toFixed(2)})`);
+        }
 
         // 2. Model Selection
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -96,14 +134,13 @@ exports.smartProxy = onRequest({
         });
 
         const generatedText = chatCompletion.choices[0]?.message?.content;
-        console.log("Model Response (${modelToUse}):",generatedText);
         const usage = chatCompletion.usage;
         
-        // 💡 Basic Cost Saving Calculation (Compared to expensive model)
+        // Basic Cost Saving Calculation
         const tokens = usage.total_tokens;
         const calculatedSavings = (tokens / 1000000) * 5.00; 
 
-        // 4. Update Metrics (User + Global) using Transaction
+        // 4. Update Metrics (User + Global)
         await updateMetricsTransaction(userId, tokens, calculatedSavings);
 
         return res.status(200).json({ response: generatedText, modelUsed: modelToUse });
@@ -113,24 +150,19 @@ exports.smartProxy = onRequest({
         return res.status(500).json({ error: error.message });
     }
 });
-// alternative endpoint that also writes assistant replies into Firestore (HTTP trigger)
-// make sure GROQ_API_KEY is available to this function as well
+
+// Endpoint that writes assistant replies into Firestore
 exports.analyzePrompt = onRequest({
     cors: true,
     memory: "1GiB",
     secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
-    // add security headers for COOP/COEP
     setSecurityHeaders(res);
 
     const { userId, chatId, prompt } = req.body;
     if (!userId || !chatId || !prompt) return res.status(400).send('missing fields');
 
     try {
-        // the earlier version referenced `modelToUse`, which isn’t defined
-        // in this scope; it crashes with a ReferenceError and the client
-        // never receives a 200 response.  choose a sensible default here
-        // (you can extend the logic later if you want dynamic routing).
         const model = "llama-3.1-8b-instant";
         const reply = await generateResponse(prompt, model);
 
@@ -147,7 +179,6 @@ exports.analyzePrompt = onRequest({
                 timestamp: admin.firestore.FieldValue.serverTimestamp(),
             });
 
-        // return the text so the client can display immediately if it wants
         return res.json({ success: true, model, reply });
     } catch (err) {
         console.error(err);
@@ -155,34 +186,29 @@ exports.analyzePrompt = onRequest({
     }
 });
 
-exports.summarizeChat = onRequest({
-    cors: true,                 
-    secrets: ["GROQ_API_KEY"],  
-    memory: "512MiB"            
-}, async (req, res) => {
-    const { userId, chatId } = req.body;
-    if (!userId || !chatId) return res.status(400).send("Missing userId or chatId");
+// --------------------------------------------------
+// FIRESTORE TRIGGER (AUTOMATED SUMMARIZATION)
+// --------------------------------------------------
+exports.onNewMessage = onDocumentCreated('users/{userId}/chats/{chatId}/messages/{messageId}', async (event) => {
+    const { userId, chatId } = event.params;
+    console.log(`🆕 New message in chat ${chatId} by user ${userId}`);
 
-    // Use 'db' which you initialized at the top of your file
     const messagesRef = db.collection("users")
-                          .doc(userId)
-                          .collection("chats")
-                          .doc(chatId)
-                          .collection("messages");
+        .doc(userId)
+        .collection("chats")
+        .doc(chatId)
+        .collection("messages");
 
     try {
-        // 1. Fetch all messages
+        // 1. Fetch all messages to summarize
         const snapshot = await messagesRef.orderBy("timestamp").get();
         
-        // ⚠️ FIX: Changed .content to .text to match your analyzePrompt format
         const chatHistory = snapshot.docs
-            .map(doc => doc.data().text || doc.data().content) 
-            .filter(text => text) // Remove empty messages
+            .map(doc => doc.data().text) 
+            .filter(text => text)
             .join("\n");
 
-        if (!chatHistory) {
-            return res.status(200).json({ summary: "No messages to summarize yet." });
-        }
+        if (!chatHistory) return;
 
         // 2. Call Groq for summary
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -202,39 +228,8 @@ exports.summarizeChat = onRequest({
             lastSummarized: admin.firestore.FieldValue.serverTimestamp()
         });
 
-        console.log(`✅ Summary generated for chat ${chatId}`);
-
-        return res.status(200).json({ summary });
+        console.log(`✅ Summary auto-generated for chat ${chatId}`);
     } catch (error) {
-        console.error("❌ Summarize Error:", error);
-        return res.status(500).json({ error: error.message });
+        console.error("❌ Auto-summarize Error:", error);
     }
 });
-
-
-async function updateMetricsTransaction(userId, tokens, savings) {
-    const userStatsRef = db.collection("users").doc(userId).collection("stats").doc("usage");
-    const globalStatsRef = db.collection("stats").doc("global");
-
-    // ... inside updateMetricsTransaction ...
-
-await db.runTransaction(async (transaction) => {
-    // Update User
-    transaction.set(userStatsRef, {
-        tokensUsed: FieldValue.increment(tokens), // Change here
-        costSaved: FieldValue.increment(savings),  // Change here
-        queriesProcessed: FieldValue.increment(1)  // Change here
-    }, { merge: true });
-
-    // Update Global
-    transaction.set(globalStatsRef, {
-        tokensUsed: FieldValue.increment(tokens), // Change here
-        costSaved: FieldValue.increment(savings),  // Change here
-        queriesProcessed: FieldValue.increment(1)  // Change here
-    }, { merge: true });
-});
-}
-function setSecurityHeaders(res) {
-    res.set("Cross-Origin-Opener-Policy", "same-origin");
-    res.set("Cross-Origin-Embedder-Policy", "require-corp");
-}
