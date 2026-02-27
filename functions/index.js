@@ -1,32 +1,28 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
+const { onRequest } = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+// --- UPDATED FOR SECRETS ---
+const { defineSecret } = require('firebase-functions/params');
+const geminiApiKey = defineSecret('GEMINI_API_KEY');
+// ---------------------------
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+// Pass the secret to the function configuration
+exports.smartProxy = onRequest({ secrets: [geminiApiKey] }, async (req, res) => {
+  
+  // Access the secret using .value()
+  const apiKey = geminiApiKey.value();
+  const genAI = new GoogleGenerativeAI(apiKey);
+  
+  const userInput = req.body.prompt;
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+  try {
+    const result = await model.generateContent(userInput);
+    const response = await result.response;
+    res.send(response.text());
+  } catch (error) {
+    logger.error("Error:", error);
+    res.status(500).send("Error");
+  }
+});
