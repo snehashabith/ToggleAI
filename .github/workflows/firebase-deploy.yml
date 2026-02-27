@@ -11,18 +11,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      # 1. Set up Node.js instead of Python
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.11' # Use the version matching your functions
+          node-version: '20' # Match your engines version in package.json
 
       - name: Install Firebase Tools
         run: npm install -g firebase-tools
 
+      # 2. Install JavaScript Dependencies
       - name: Install Dependencies
         run: |
           cd functions
-          pip install -r requirements.txt
+          npm ci # Uses package-lock.json for reliable installs
 
       - name: Deploy to Firebase
+        # Note: You may need to change secrets.FIRE_BASE to 
+        # secrets.FIREBASE_TOKEN if you regenerate it
         run: firebase deploy --only functions,firestore --token "${{ secrets.FIRE_BASE}}"
