@@ -9,6 +9,24 @@ const trainedEmbeddings = require('./trained_embeddings.json');
 admin.initializeApp();
 const db = admin.firestore();
 
+
+
+
+// helper to generate a response; allows reuse from different endpoints
+async function generateResponse(prompt, model) {
+    if (!process.env.GROQ_API_KEY) {
+        throw new Error('GROQ_API_KEY is not set');
+    }
+    const groq = new Groq({
+        apiKey: process.env.GROQ_API_KEY
+    });
+    const completion = await groq.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model,
+    });
+    return completion.choices[0]?.message?.content || '';
+}
+
 // 🚀 Local Embedding Model Pipeline (Runs once on cold start)
 let embedder;
 async function getEmbedder() {
@@ -33,10 +51,14 @@ function cosineSimilarity(vecA, vecB) {
 
 // 🚀 Main Function: smartProxy
 exports.smartProxy = onRequest({
+    cors: true,
     timeoutSeconds: 60,
     memory: "512MiB",
     secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
+    // set COOP/COEP headers before doing anything else
+    setSecurityHeaders(res);
+
     // 💡 Expecting userId in the request body
     const { prompt, userId } = req.body;
     if (!prompt || !userId) return res.status(400).send("Missing prompt or userId");
@@ -74,6 +96,7 @@ exports.smartProxy = onRequest({
         });
 
         const generatedText = chatCompletion.choices[0]?.message?.content;
+        console.log("Model Response (${modelToUse}):",generatedText);
         const usage = chatCompletion.usage;
         
         // 💡 Basic Cost Saving Calculation (Compared to expensive model)
@@ -90,8 +113,43 @@ exports.smartProxy = onRequest({
         return res.status(500).json({ error: error.message });
     }
 });
+// alternative endpoint that also writes assistant replies into Firestore (HTTP trigger)
+// make sure GROQ_API_KEY is available to this function as well
+exports.analyzePrompt = onRequest({
+    cors: true,
+    secrets: ["GROQ_API_KEY"]
+}, async (req, res) => {
+    // add security headers for COOP/COEP
+    setSecurityHeaders(res);
 
-// 🚀 Function: summarizeChat
+    const { userId, chatId, prompt } = req.body;
+    if (!userId || !chatId || !prompt) return res.status(400).send('missing fields');
+
+    try {
+        const model = modelToUse;
+        const reply = await generateResponse(prompt, model);
+
+        await db
+            .collection('users')
+            .doc(userId)
+            .collection('chats')
+            .doc(chatId)
+            .collection('messages')
+            .add({
+                text: reply,
+                sender: 'assistant',
+                model,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+        // return the text so the client can display immediately if it wants
+        return res.json({ success: true, model, reply });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send(err.message);
+    }
+});
+
 exports.summarizeChat = onRequest(async (req, res) => {
     const { userId, chatId } = req.body;
     if (!userId || !chatId) return res.status(400).send("Missing userId or chatId");
@@ -127,7 +185,7 @@ exports.summarizeChat = onRequest(async (req, res) => {
     }
 });
 
-// 💡 Helper to handle Firestore Transactions
+
 async function updateMetricsTransaction(userId, tokens, savings) {
     const userStatsRef = db.collection("users").doc(userId).collection("stats").doc("usage");
     const globalStatsRef = db.collection("stats").doc("global");

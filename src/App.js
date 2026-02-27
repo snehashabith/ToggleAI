@@ -5,7 +5,8 @@ import PromptPage from './components/PromptPage';
 import Login from './Login';
 
 import { auth, db } from './firebase';
-import { onAuthStateChanged, signOut, deleteUser } from 'firebase/auth';
+import { onAuthStateChanged, signOut, deleteUser,signInWithRedirect, 
+  getRedirectResult, } from 'firebase/auth';
 import { doc, getDoc, setDoc, onSnapshot, collection, query, orderBy, addDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 
 function App() {
@@ -89,8 +90,8 @@ function App() {
       currentChatId = newChatRef.id;
       await setDoc(newChatRef, {
         title: text.substring(0, 30),
-        timestamp: serverTimestamp(),
-        model: 'GPT-4o-mini',
+        timestamp: new Date(),
+        model: 'groq',
         summary: 'New conversation starting...'
       });
       setActiveChat(currentChatId);
@@ -101,10 +102,44 @@ function App() {
     await addDoc(msgsRef, {
       text,
       sender: 'user',
-      timestamp: serverTimestamp(),
+      timestamp: new Date(),
     });
 
-    // 3. Person A's backend will listen to this collection and add the 'assistant' reply
+    // 3. Notify backend – receive reply text in response so we can display it immediately
+    try {
+      const resp = await fetch(
+        process.env.REACT_APP_ANALYZE_ENDPOINT ||
+          'https://us-central1-YO.cloudfunctions.net/analyzePrompt',
+        {
+          cors: true,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            chatId: currentChatId,
+            prompt: text,
+          }),
+        }
+      );
+      const data = await resp.json();
+      if (data.reply) {
+        // optimistic display; Firestore listener will eventually sync with the same message
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: `temp-${Date.now()}`,
+            text: data.reply,
+            sender: 'assistant',
+            model: data.model,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+    } catch (err) {
+      console.error('backend error', err);
+    }
+
+    // 4. (optional) Person A's backend will listen to this collection and add the 'assistant' reply
   };
 
   const handleLogout = () => signOut(auth);

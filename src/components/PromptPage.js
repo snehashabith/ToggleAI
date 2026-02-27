@@ -27,9 +27,14 @@ function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, chatMes
     e.preventDefault();
     if (!inputValue.trim()) return;
 
-    // push text up to parent which will write to Firestore and manage reply
-    onSendMessage(inputValue);
-    setInputValue('');
+    setIsLoading(true);
+    try {
+      // parent returns a promise that resolves once the backend has been notified
+      await onSendMessage(inputValue);
+      setInputValue('');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -86,10 +91,9 @@ function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, chatMes
                     </div>
                   )}
                   <span className="message-time">
-                    {message.timestamp.toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {message.timestamp 
+  ? (message.timestamp.toDate ? message.timestamp.toDate() : new Date(message.timestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+  : 'Sending...'}
                   </span>
                 </motion.div>
               ))
