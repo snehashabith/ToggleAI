@@ -109,7 +109,7 @@ function App() {
     try {
       const resp = await fetch(
         process.env.REACT_APP_ANALYZE_ENDPOINT ||
-          'https://us-central1-YO.cloudfunctions.net/analyzePrompt',
+          'https://analyzeprompt-5uc3k4s34a-uc.a.run.app',
         {
           cors: true,
           method: 'POST',

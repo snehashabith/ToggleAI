@@ -117,6 +117,7 @@ exports.smartProxy = onRequest({
 // make sure GROQ_API_KEY is available to this function as well
 exports.analyzePrompt = onRequest({
     cors: true,
+    memory: "1GiB",
     secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
     // add security headers for COOP/COEP
@@ -126,7 +127,11 @@ exports.analyzePrompt = onRequest({
     if (!userId || !chatId || !prompt) return res.status(400).send('missing fields');
 
     try {
-        const model = modelToUse;
+        // the earlier version referenced `modelToUse`, which isn’t defined
+        // in this scope; it crashes with a ReferenceError and the client
+        // never receives a 200 response.  choose a sensible default here
+        // (you can extend the logic later if you want dynamic routing).
+        const model = "llama-3.1-8b-instant";
         const reply = await generateResponse(prompt, model);
 
         await db
@@ -150,37 +155,58 @@ exports.analyzePrompt = onRequest({
     }
 });
 
-exports.summarizeChat = onRequest(async (req, res) => {
+exports.summarizeChat = onRequest({
+    cors: true,                 
+    secrets: ["GROQ_API_KEY"],  
+    memory: "512MiB"            
+}, async (req, res) => {
     const { userId, chatId } = req.body;
     if (!userId || !chatId) return res.status(400).send("Missing userId or chatId");
 
-    const messagesRef = db.collection("users").doc(userId).collection("chats").doc(chatId).collection("messages");
+    // Use 'db' which you initialized at the top of your file
+    const messagesRef = db.collection("users")
+                          .doc(userId)
+                          .collection("chats")
+                          .doc(chatId)
+                          .collection("messages");
 
     try {
         // 1. Fetch all messages
         const snapshot = await messagesRef.orderBy("timestamp").get();
-        const chatHistory = snapshot.docs.map(doc => doc.data().content).join("\n");
+        
+        // ⚠️ FIX: Changed .content to .text to match your analyzePrompt format
+        const chatHistory = snapshot.docs
+            .map(doc => doc.data().text || doc.data().content) 
+            .filter(text => text) // Remove empty messages
+            .join("\n");
 
-        // 2. Call Groq for summary (Cheap model)
+        if (!chatHistory) {
+            return res.status(200).json({ summary: "No messages to summarize yet." });
+        }
+
+        // 2. Call Groq for summary
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
         const summaryCompletion = await groq.chat.completions.create({
             messages: [
-                { role: "system", content: "Summarize this chat history concisely." },
+                { role: "system", content: "Summarize this chat history concisely in 2-3 sentences." },
                 { role: "user", content: chatHistory }
             ],
             model: "llama-3.1-8b-instant",
         });
 
-        const summary = summaryCompletion.choices[0].message.content;
+        const summary = summaryCompletion.choices[0]?.message?.content || "Could not generate summary.";
 
-        // 3. Store summary
+        // 3. Store summary in the Chat document
         await db.collection("users").doc(userId).collection("chats").doc(chatId).update({
             summary: summary,
             lastSummarized: admin.firestore.FieldValue.serverTimestamp()
         });
 
+        console.log(`✅ Summary generated for chat ${chatId}`);
+
         return res.status(200).json({ summary });
     } catch (error) {
+        console.error("❌ Summarize Error:", error);
         return res.status(500).json({ error: error.message });
     }
 });
@@ -207,4 +233,8 @@ await db.runTransaction(async (transaction) => {
         queriesProcessed: FieldValue.increment(1)  // Change here
     }, { merge: true });
 });
+}
+function setSecurityHeaders(res) {
+    res.set("Cross-Origin-Opener-Policy", "same-origin");
+    res.set("Cross-Origin-Embedder-Policy", "require-corp");
 }
