@@ -1,57 +1,317 @@
-[debug] [2026-02-27T12:48:49.771Z] ----------------------------------------------------------------------
-[debug] [2026-02-27T12:48:49.773Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
-[debug] [2026-02-27T12:48:49.773Z] CLI Version:   15.8.0
-[debug] [2026-02-27T12:48:49.773Z] Platform:      win32
-[debug] [2026-02-27T12:48:49.773Z] Node Version:  v24.13.0
-[debug] [2026-02-27T12:48:49.773Z] Time:          Fri Feb 27 2026 18:18:49 GMT+0530 (India Standard Time)
-[debug] [2026-02-27T12:48:49.773Z] ----------------------------------------------------------------------
+[debug] [2026-02-27T16:23:13.420Z] ----------------------------------------------------------------------
+[debug] [2026-02-27T16:23:13.426Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2026-02-27T16:23:13.426Z] CLI Version:   15.8.0
+[debug] [2026-02-27T16:23:13.427Z] Platform:      win32
+[debug] [2026-02-27T16:23:13.427Z] Node Version:  v24.13.0
+[debug] [2026-02-27T16:23:13.427Z] Time:          Fri Feb 27 2026 21:53:13 GMT+0530 (India Standard Time)
+[debug] [2026-02-27T16:23:13.427Z] ----------------------------------------------------------------------
 [debug] 
+[debug] [2026-02-27T16:23:18.373Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-27T16:23:18.374Z] > authorizing via signed-in user (snehashabith06@gmail.com)
+[debug] [2026-02-27T16:23:18.374Z] [iam] checking project tinkherhack-a8b8a for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebase.projects.update","firebaseauth.configs.update","firebasehosting.sites.update"]
+[debug] [2026-02-27T16:23:18.375Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:18.376Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:18.377Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a:testIamPermissions [none]
+[debug] [2026-02-27T16:23:18.378Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a:testIamPermissions  x-goog-user-project=tinkherhack-a8b8a
+[debug] [2026-02-27T16:23:18.378Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebase.projects.update","firebaseauth.configs.update","firebasehosting.sites.update"]}
+[debug] [2026-02-27T16:23:19.850Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a:testIamPermissions 200
+[debug] [2026-02-27T16:23:19.850Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebase.projects.update","firebaseauth.configs.update","firebasehosting.sites.update"]}
+[debug] [2026-02-27T16:23:19.851Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:19.851Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:19.852Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/tinkherhack-a8b8a/serviceAccounts/tinkherhack-a8b8a@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2026-02-27T16:23:19.852Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/tinkherhack-a8b8a/serviceAccounts/tinkherhack-a8b8a@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2026-02-27T16:23:21.613Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/tinkherhack-a8b8a/serviceAccounts/tinkherhack-a8b8a@appspot.gserviceaccount.com:testIamPermissions 404
+[debug] [2026-02-27T16:23:21.613Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/tinkherhack-a8b8a/serviceAccounts/tinkherhack-a8b8a@appspot.gserviceaccount.com:testIamPermissions {"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}}
+[debug] [2026-02-27T16:23:21.615Z] [functions] service account IAM check errored, deploy may fail: Request to https://iam.googleapis.com/v1/projects/tinkherhack-a8b8a/serviceAccounts/tinkherhack-a8b8a@appspot.gserviceaccount.com:testIamPermissions had HTTP Error: 404, Unknown service account {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}},"response":{"statusCode":404}},"exit":1,"message":"Request to https://iam.googleapis.com/v1/projects/tinkherhack-a8b8a/serviceAccounts/tinkherhack-a8b8a@appspot.gserviceaccount.com:testIamPermissions had HTTP Error: 404, Unknown service account","status":404}
+[debug] [2026-02-27T16:23:21.618Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:21.618Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:21.619Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/tinkherhack-a8b8a [none]
+[debug] [2026-02-27T16:23:22.278Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/tinkherhack-a8b8a 200
+[debug] [2026-02-27T16:23:22.279Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/tinkherhack-a8b8a {"projectId":"tinkherhack-a8b8a","projectNumber":"527657915174","displayName":"tinkherhack","name":"projects/tinkherhack-a8b8a","resources":{"hostingSite":"tinkherhack-a8b8a"},"state":"ACTIVE","etag":"1_39a78287-61a8-41b9-a725-b4e39668c645"}
+[debug] [2026-02-27T16:23:22.284Z] Specified "public" directory "build" does not exist; Deploy to Hosting site "tinkherhack-a8b8a" may fail or be empty.
 [info] 
-     ######## #### ########  ######## ########     ###     ######  ########
-     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
-     ######    ##  ########  ######   ########  #########  ######  ######
-     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
-     ##       #### ##     ## ######## ########  ##     ##  ######  ########
-
-You're about to initialize a Firebase project in this directory:
-
-  C:\Users\sneha\OneDrive\Desktop\New folder\sneha\ToggleAI
-
+[info] === Deploying to 'tinkherhack-a8b8a'...
 [info] 
-=== Project Setup
-[info] 
-[info] First, let's associate this project directory with a Firebase project.
-[info] You can create multiple project aliases by running firebase use --add, 
-[info] 
-[debug] [2026-02-27T12:50:01.239Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
-[debug] [2026-02-27T12:50:01.239Z] > authorizing via signed-in user (snehashabith06@gmail.com)
-[debug] [2026-02-27T12:50:01.241Z] Checked if tokens are valid: false, expires at: 1772181395573
-[debug] [2026-02-27T12:50:01.242Z] Checked if tokens are valid: false, expires at: 1772181395573
-[debug] [2026-02-27T12:50:01.242Z] > refreshing access token with scopes: []
-[debug] [2026-02-27T12:50:01.244Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
-[debug] [2026-02-27T12:50:01.244Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
-[debug] [2026-02-27T12:50:01.449Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
-[debug] [2026-02-27T12:50:01.449Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
-[debug] [2026-02-27T12:50:01.453Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=100
-[debug] [2026-02-27T12:50:02.241Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
-[debug] [2026-02-27T12:50:02.242Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
-[info] 
-=== Firestore Setup
+[info] i  deploying firestore, functions, hosting, auth 
 [info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
-[debug] [2026-02-27T12:50:04.931Z] Checked if tokens are valid: true, expires at: 1772200200449
-[debug] [2026-02-27T12:50:04.931Z] Checked if tokens are valid: true, expires at: 1772200200449
-[debug] [2026-02-27T12:50:04.931Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/firestore.googleapis.com [none]
-[debug] [2026-02-27T12:50:04.931Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/firestore.googleapis.com  x-goog-user-project=tinkherhack-a8b8a
-[debug] [2026-02-27T12:50:06.843Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/firestore.googleapis.com 200
-[debug] [2026-02-27T12:50:06.843Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/firestore.googleapis.com [omitted]
-[info] +  firestore: required API firestore.googleapis.com is enabled 
-[debug] [2026-02-27T12:50:06.846Z] Checked if tokens are valid: true, expires at: 1772200200449
-[debug] [2026-02-27T12:50:06.846Z] Checked if tokens are valid: true, expires at: 1772200200449
-[debug] [2026-02-27T12:50:06.846Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/tinkherhack-a8b8a/databases [none]
-[debug] [2026-02-27T12:50:07.698Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/tinkherhack-a8b8a/databases 200
-[debug] [2026-02-27T12:50:07.698Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/tinkherhack-a8b8a/databases {"databases":[{"name":"projects/tinkherhack-a8b8a/databases/(default)","uid":"eb615520-fb25-43ff-bc67-a11da7bd9179","createTime":"2026-02-27T12:30:36.213351Z","updateTime":"2026-02-27T12:30:36.213351Z","locationId":"us-central1","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-02-27T12:30:36.213351Z","appEngineIntegrationMode":"DISABLED","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IKGS/uja+ZIDMMHq+YzX+ZID"}]}
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-02-27T16:23:22.295Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:22.296Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:22.296Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/tinkherhack-a8b8a/databases/(default) [none]
+[debug] [2026-02-27T16:23:24.004Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/tinkherhack-a8b8a/databases/(default) 200
+[debug] [2026-02-27T16:23:24.004Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/tinkherhack-a8b8a/databases/(default) {"name":"projects/tinkherhack-a8b8a/databases/(default)","uid":"eb615520-fb25-43ff-bc67-a11da7bd9179","createTime":"2026-02-27T12:30:36.213351Z","updateTime":"2026-02-27T12:30:36.213351Z","locationId":"us-central1","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-02-27T15:23:21.911607Z","appEngineIntegrationMode":"DISABLED","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IMms+b6K+pIDMMHq+YzX+ZID"}
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-02-27T16:23:24.012Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:24.013Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:24.013Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/tinkherhack-a8b8a:test [none]
+[debug] [2026-02-27T16:23:24.013Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/tinkherhack-a8b8a:test [omitted]
+[debug] [2026-02-27T16:23:25.487Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/tinkherhack-a8b8a:test 200
+[debug] [2026-02-27T16:23:25.487Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/tinkherhack-a8b8a:test {}
+[info] +  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-02-27T16:23:25.490Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:25.490Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:25.490Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a [none]
+[debug] [2026-02-27T16:23:26.843Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a 200
+[debug] [2026-02-27T16:23:26.843Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a {"projectNumber":"527657915174","projectId":"tinkherhack-a8b8a","lifecycleState":"ACTIVE","name":"tinkherhack","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-02-27T08:06:29.127914Z"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[debug] [2026-02-27T16:23:26.848Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:26.848Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:26.849Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:26.849Z] Checked if tokens are valid: true, expires at: 1772211672736
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[debug] [2026-02-27T16:23:26.850Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:26.850Z] Checked if tokens are valid: true, expires at: 1772211672736
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2026-02-27T16:23:26.852Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:26.852Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:26.852Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-02-27T16:23:26.852Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/cloudfunctions.googleapis.com  x-goog-user-project=tinkherhack-a8b8a
+[debug] [2026-02-27T16:23:26.855Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/runtimeconfig.googleapis.com [none]
+[debug] [2026-02-27T16:23:26.856Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/runtimeconfig.googleapis.com  x-goog-user-project=tinkherhack-a8b8a
+[debug] [2026-02-27T16:23:26.858Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/cloudbuild.googleapis.com [none]
+[debug] [2026-02-27T16:23:26.859Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/cloudbuild.googleapis.com  x-goog-user-project=tinkherhack-a8b8a
+[debug] [2026-02-27T16:23:26.861Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/artifactregistry.googleapis.com [none]
+[debug] [2026-02-27T16:23:26.861Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/artifactregistry.googleapis.com  x-goog-user-project=tinkherhack-a8b8a
+[debug] [2026-02-27T16:23:28.580Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/runtimeconfig.googleapis.com 200
+[debug] [2026-02-27T16:23:28.580Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/runtimeconfig.googleapis.com [omitted]
+[debug] [2026-02-27T16:23:28.588Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/cloudfunctions.googleapis.com 200
+[debug] [2026-02-27T16:23:28.588Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/cloudfunctions.googleapis.com [omitted]
+[info] +  functions: required API cloudfunctions.googleapis.com is enabled 
+[debug] [2026-02-27T16:23:28.596Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/cloudbuild.googleapis.com 200
+[debug] [2026-02-27T16:23:28.596Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/cloudbuild.googleapis.com [omitted]
+[info] +  functions: required API cloudbuild.googleapis.com is enabled 
+[debug] [2026-02-27T16:23:28.602Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/artifactregistry.googleapis.com 200
+[debug] [2026-02-27T16:23:28.603Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/tinkherhack-a8b8a/services/artifactregistry.googleapis.com [omitted]
+[info] +  artifactregistry: required API artifactregistry.googleapis.com is enabled 
+[debug] [2026-02-27T16:23:28.607Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:28.607Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:28.607Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/tinkherhack-a8b8a/adminSdkConfig [none]
+[debug] [2026-02-27T16:23:29.054Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/tinkherhack-a8b8a/adminSdkConfig 200
+[debug] [2026-02-27T16:23:29.054Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/tinkherhack-a8b8a/adminSdkConfig {"projectId":"tinkherhack-a8b8a","storageBucket":"tinkherhack-a8b8a.firebasestorage.app"}
+[debug] [2026-02-27T16:23:29.055Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:29.055Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:29.055Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/tinkherhack-a8b8a/configs [none]
+[debug] [2026-02-27T16:23:29.733Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/tinkherhack-a8b8a/configs 200
+[debug] [2026-02-27T16:23:29.733Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/tinkherhack-a8b8a/configs {}
+[debug] [2026-02-27T16:23:29.735Z] Validating nodejs source
+[warn] !  functions: Runtime Node.js 20 will be deprecated on 2026-04-30 and will be decommissioned on 2026-10-30, after which you will not be able to deploy without upgrading. Consider upgrading now to avoid disruption. See https://cloud.google.com/functions/docs/runtime-support for full details on the lifecycle policy 
+[warn] !  functions: Couldn't find firebase-functions package in your source code. Have you run 'npm install'? 
+[debug] [2026-02-27T16:23:29.737Z] getFunctionsSDKVersion encountered error: Cannot find module 'firebase-functions'
+Require stack:
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\versioning.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\prepare.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\emulator\functionsEmulatorShared.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\frameworks\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\hosting\prepare.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\hosting\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\commands\deploy.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\commands\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\cli.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js {"code":"MODULE_NOT_FOUND","requireStack":["C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\functions\\runtimes\\node\\versioning.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\functions\\runtimes\\node\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\functions\\runtimes\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\functions\\prepare.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorShared.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\frameworks\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\hosting\\prepare.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\hosting\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\commands\\deploy.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\commands\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\bin\\cli.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\bin\\firebase.js"]}
+[debug] [2026-02-27T16:23:29.737Z] checkFunctionsSDKVersion encountered error: Invalid Version:  {}
+[debug] [2026-02-27T16:23:29.739Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "24"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "firebase-admin": "^13.7.0",
+    "firebase-functions": "^7.0.6"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.4.1"
+  },
+  "private": true
+}
+[debug] [2026-02-27T16:23:29.740Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[debug] [2026-02-27T16:23:29.740Z] Could not parse firebase-functions version '' into semver.
+[debug] [2026-02-27T16:23:29.741Z] Could not find functions.yaml. Must use http discovery
+[debug] [2026-02-27T16:23:29.756Z] Error: Cannot find module 'firebase-functions'
+Require stack:
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\prepare.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\emulator\functionsEmulatorShared.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\frameworks\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\hosting\prepare.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\hosting\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\commands\deploy.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\commands\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\cli.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+    at require.resolve (node:internal/modules/helpers:163:19)
+    at Delegate.findFunctionsBinary (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\index.js:101:33)
+    at Delegate.spawnFunctionsProcess (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\index.js:131:30)
+    at Delegate.serveAdmin (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\index.js:152:35)
+    at Delegate.discoverBuild (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\index.js:192:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loadCodebases (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\prepare.js:334:33)
+    at async prepare (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\prepare.js:69:24)
+    at async chain (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\index.js:45:9)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-02-27T16:23:46.120Z] ----------------------------------------------------------------------
+[debug] [2026-02-27T16:23:46.124Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2026-02-27T16:23:46.125Z] CLI Version:   15.8.0
+[debug] [2026-02-27T16:23:46.125Z] Platform:      win32
+[debug] [2026-02-27T16:23:46.125Z] Node Version:  v24.13.0
+[debug] [2026-02-27T16:23:46.125Z] Time:          Fri Feb 27 2026 21:53:46 GMT+0530 (India Standard Time)
+[debug] [2026-02-27T16:23:46.125Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-02-27T16:23:47.838Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-27T16:23:47.838Z] > authorizing via signed-in user (snehashabith06@gmail.com)
+[debug] [2026-02-27T16:23:47.838Z] [iam] checking project tinkherhack-a8b8a for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebase.projects.update","firebaseauth.configs.update","firebasehosting.sites.update"]
+[debug] [2026-02-27T16:23:47.840Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:47.840Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:47.841Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a:testIamPermissions [none]
+[debug] [2026-02-27T16:23:47.841Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a:testIamPermissions  x-goog-user-project=tinkherhack-a8b8a
+[debug] [2026-02-27T16:23:47.841Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebase.projects.update","firebaseauth.configs.update","firebasehosting.sites.update"]}
+[debug] [2026-02-27T16:23:49.169Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a:testIamPermissions 200
+[debug] [2026-02-27T16:23:49.169Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebase.projects.update","firebaseauth.configs.update","firebasehosting.sites.update"]}
+[debug] [2026-02-27T16:23:49.170Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:49.170Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:49.170Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/tinkherhack-a8b8a/serviceAccounts/tinkherhack-a8b8a@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2026-02-27T16:23:49.170Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/tinkherhack-a8b8a/serviceAccounts/tinkherhack-a8b8a@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2026-02-27T16:23:50.804Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/tinkherhack-a8b8a/serviceAccounts/tinkherhack-a8b8a@appspot.gserviceaccount.com:testIamPermissions 404
+[debug] [2026-02-27T16:23:50.804Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/tinkherhack-a8b8a/serviceAccounts/tinkherhack-a8b8a@appspot.gserviceaccount.com:testIamPermissions {"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}}
+[debug] [2026-02-27T16:23:50.805Z] [functions] service account IAM check errored, deploy may fail: Request to https://iam.googleapis.com/v1/projects/tinkherhack-a8b8a/serviceAccounts/tinkherhack-a8b8a@appspot.gserviceaccount.com:testIamPermissions had HTTP Error: 404, Unknown service account {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}},"response":{"statusCode":404}},"exit":1,"message":"Request to https://iam.googleapis.com/v1/projects/tinkherhack-a8b8a/serviceAccounts/tinkherhack-a8b8a@appspot.gserviceaccount.com:testIamPermissions had HTTP Error: 404, Unknown service account","status":404}
+[debug] [2026-02-27T16:23:50.806Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:50.806Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:50.806Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/tinkherhack-a8b8a [none]
+[debug] [2026-02-27T16:23:51.401Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/tinkherhack-a8b8a 200
+[debug] [2026-02-27T16:23:51.402Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/tinkherhack-a8b8a {"projectId":"tinkherhack-a8b8a","projectNumber":"527657915174","displayName":"tinkherhack","name":"projects/tinkherhack-a8b8a","resources":{"hostingSite":"tinkherhack-a8b8a"},"state":"ACTIVE","etag":"1_39a78287-61a8-41b9-a725-b4e39668c645"}
+[debug] [2026-02-27T16:23:51.404Z] Specified "public" directory "build" does not exist; Deploy to Hosting site "tinkherhack-a8b8a" may fail or be empty.
 [info] 
-[info] Firestore Security Rules allow you to define how and when to allow
-[info] requests. You can keep these rules in your project directory
-[info] and publish them with firebase deploy.
+[info] === Deploying to 'tinkherhack-a8b8a'...
 [info] 
+[info] i  deploying firestore, functions, hosting, auth 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-02-27T16:23:51.410Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:51.411Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:51.411Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/tinkherhack-a8b8a/databases/(default) [none]
+[debug] [2026-02-27T16:23:53.134Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/tinkherhack-a8b8a/databases/(default) 200
+[debug] [2026-02-27T16:23:53.134Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/tinkherhack-a8b8a/databases/(default) {"name":"projects/tinkherhack-a8b8a/databases/(default)","uid":"eb615520-fb25-43ff-bc67-a11da7bd9179","createTime":"2026-02-27T12:30:36.213351Z","updateTime":"2026-02-27T12:30:36.213351Z","locationId":"us-central1","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-02-27T15:23:50.956521Z","appEngineIntegrationMode":"DISABLED","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IO+I5syK+pIDMMHq+YzX+ZID"}
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-02-27T16:23:53.137Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:53.137Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:53.137Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/tinkherhack-a8b8a:test [none]
+[debug] [2026-02-27T16:23:53.137Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/tinkherhack-a8b8a:test [omitted]
+[debug] [2026-02-27T16:23:54.499Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/tinkherhack-a8b8a:test 200
+[debug] [2026-02-27T16:23:54.499Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/tinkherhack-a8b8a:test {}
+[info] +  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-02-27T16:23:54.501Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:54.501Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:54.501Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a [none]
+[debug] [2026-02-27T16:23:55.871Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a 200
+[debug] [2026-02-27T16:23:55.871Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/tinkherhack-a8b8a {"projectNumber":"527657915174","projectId":"tinkherhack-a8b8a","lifecycleState":"ACTIVE","name":"tinkherhack","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-02-27T08:06:29.127914Z"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2026-02-27T16:23:55.875Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:55.876Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:55.876Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/tinkherhack-a8b8a/adminSdkConfig [none]
+[debug] [2026-02-27T16:23:56.232Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/tinkherhack-a8b8a/adminSdkConfig 200
+[debug] [2026-02-27T16:23:56.232Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/tinkherhack-a8b8a/adminSdkConfig {"projectId":"tinkherhack-a8b8a","storageBucket":"tinkherhack-a8b8a.firebasestorage.app"}
+[debug] [2026-02-27T16:23:56.233Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:56.233Z] Checked if tokens are valid: true, expires at: 1772211672736
+[debug] [2026-02-27T16:23:56.234Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/tinkherhack-a8b8a/configs [none]
+[debug] [2026-02-27T16:23:56.606Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/tinkherhack-a8b8a/configs 200
+[debug] [2026-02-27T16:23:56.606Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/tinkherhack-a8b8a/configs {}
+[debug] [2026-02-27T16:23:56.608Z] Validating nodejs source
+[warn] !  functions: Runtime Node.js 20 will be deprecated on 2026-04-30 and will be decommissioned on 2026-10-30, after which you will not be able to deploy without upgrading. Consider upgrading now to avoid disruption. See https://cloud.google.com/functions/docs/runtime-support for full details on the lifecycle policy 
+[warn] !  functions: Couldn't find firebase-functions package in your source code. Have you run 'npm install'? 
+[debug] [2026-02-27T16:23:56.612Z] getFunctionsSDKVersion encountered error: Cannot find module 'firebase-functions'
+Require stack:
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\versioning.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\prepare.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\emulator\functionsEmulatorShared.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\frameworks\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\hosting\prepare.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\hosting\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\commands\deploy.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\commands\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\cli.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js {"code":"MODULE_NOT_FOUND","requireStack":["C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\functions\\runtimes\\node\\versioning.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\functions\\runtimes\\node\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\functions\\runtimes\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\functions\\prepare.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorShared.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\frameworks\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\hosting\\prepare.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\hosting\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\deploy\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\commands\\deploy.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\commands\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\index.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\bin\\cli.js","C:\\Users\\sneha\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\bin\\firebase.js"]}
+[debug] [2026-02-27T16:23:56.613Z] checkFunctionsSDKVersion encountered error: Invalid Version:  {}
+[debug] [2026-02-27T16:23:56.615Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "24"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "firebase-admin": "^13.7.0",
+    "firebase-functions": "^7.0.6"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.4.1"
+  },
+  "private": true
+}
+[debug] [2026-02-27T16:23:56.615Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[debug] [2026-02-27T16:23:56.617Z] Could not parse firebase-functions version '' into semver.
+[debug] [2026-02-27T16:23:56.618Z] Could not find functions.yaml. Must use http discovery
+[debug] [2026-02-27T16:23:56.631Z] Error: Cannot find module 'firebase-functions'
+Require stack:
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\prepare.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\emulator\functionsEmulatorShared.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\frameworks\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\hosting\prepare.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\hosting\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\commands\deploy.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\commands\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\index.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\cli.js
+- C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+    at require.resolve (node:internal/modules/helpers:163:19)
+    at Delegate.findFunctionsBinary (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\index.js:101:33)
+    at Delegate.spawnFunctionsProcess (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\index.js:131:30)
+    at Delegate.serveAdmin (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\index.js:152:35)
+    at Delegate.discoverBuild (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\node\index.js:192:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loadCodebases (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\prepare.js:334:33)
+    at async prepare (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\prepare.js:69:24)
+    at async chain (C:\Users\sneha\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\index.js:45:9)
+[error] 
+[error] Error: An unexpected error has occurred.

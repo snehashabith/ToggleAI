@@ -1,0 +1,149 @@
+
+
+:root {
+  
+  --bg-deep: #0a0f1d;        
+  --bg-surface: #161e31;     /* Card surface */
+  --blue-primary: #3b82f6;   /* Main accent blue */
+  --blue-hover: #2563eb;     /* Darker accent for hover */
+  --blue-border: #2d3748;    /* Subdued borders */
+  --blue-input: #1e293b;     /* Input fields */
+  --text-main: #f1f5f9;      /* Off-white text */
+  --text-muted: #94a3b8;     /* Gray-blue text */
+}
+
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: radial-gradient(circle at center, #1e293b 0%, var(--bg-deep) 100%);
+  padding: 1rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-surface);
+  border: 1px solid var(--blue-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.5s ease-out;
+}
+
+/* Hero Section */
+.login-hero {
+  background: rgba(255, 255, 255, 0.03); /* Subtle contrast from card */
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--blue-border);
+}
+
+.login-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 0.25rem;
+  /* Swapped gold for a clean white-to-blue-gray gradient */
+  background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.login-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Form Section */
+.login-form-section {
+  padding: 2rem 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.875rem;
+  border: 1px solid var(--blue-border);
+  border-radius: 0.5rem;
+  background: var(--blue-input);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--blue-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Buttons */
+.primary-btn {
+  width: 100%;
+  padding: 0.875rem;
+  background: var(--blue-primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.primary-btn:hover {
+  background: var(--blue-hover);
+}
+
+.google-btn {
+  background: transparent !important;
+  border: 1px solid var(--blue-border) !important;
+  color: var(--text-main) !important;
+}
+
+.google-btn:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.divider {
+  text-align: center;
+  margin: 1.5rem 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.divider::before, .divider::after {
+  background: var(--blue-border);
+}
+
+/* Auth Toggle */
+.toggle-btn {
+  color: var(--blue-primary);
+  background: none;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toggle-btn:hover {
+  text-decoration: underline;
+}
+
+/* Footer */
+.login-footer {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
