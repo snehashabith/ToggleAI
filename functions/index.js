@@ -1,18 +1,22 @@
 const { onRequest } = require("firebase-functions/v2/https");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
-const { FieldValue } = require("firebase-admin/firestore"); // Add this line
+const { FieldValue } = require("firebase-admin/firestore");
 const Groq = require("groq-sdk");
 const { pipeline } = require('@xenova/transformers');
+const functions = require("firebase-functions");
+
 // 💡 Pre-calculated embeddings file
 const trainedEmbeddings = require('./trained_embeddings.json');
 
 admin.initializeApp();
 const db = admin.firestore();
 
+// --------------------------------------------------
+// HELPERS
+// --------------------------------------------------
 
-
-
-// helper to generate a response; allows reuse from different endpoints
+// helper to generate a response
 async function generateResponse(prompt, model) {
     if (!process.env.GROQ_API_KEY) {
         throw new Error('GROQ_API_KEY is not set');
@@ -27,7 +31,7 @@ async function generateResponse(prompt, model) {
     return completion.choices[0]?.message?.content || '';
 }
 
-// 🚀 Local Embedding Model Pipeline (Runs once on cold start)
+// Local Embedding Model Pipeline (Runs once on cold start)
 let embedder;
 async function getEmbedder() {
     if (!embedder) {
@@ -36,7 +40,7 @@ async function getEmbedder() {
     return embedder;
 }
 
-// 💡 Simple Vector Similarity Function
+// Simple Vector Similarity Function
 function cosineSimilarity(vecA, vecB) {
     let dotProduct = 0;
     let normA = 0;
@@ -63,6 +67,7 @@ exports.smartProxy = onRequest({
     memory: "512MiB",
     secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
+<<<<<<< HEAD
     setSecurityHeaders(res);
     const { prompt, userId } = req.body;
     if (!prompt || !userId) return res.status(400).send("Missing prompt or userId");
@@ -72,6 +77,12 @@ exports.smartProxy = onRequest({
         const pipe = await getEmbedder();
         const userInputEmbedding = await pipe(prompt, { pooling: 'mean', normalize: true });
         const userVec = userInputEmbedding.data;
+=======
+    setSecurityHeaders(res);
+
+    const { prompt, userId } = req.body;
+    if (!prompt || !userId) return res.status(400).send("Missing prompt or userId");
+>>>>>>> 4537e85574c345dcb00d039b725306bd7f098692
 
         let bestRoute = "cheap";
         let maxSimilarity = -1;
@@ -94,11 +105,21 @@ exports.smartProxy = onRequest({
         // CORRECTLY USES THE ROUTE
         let modelToUse = (bestRoute === "smart") ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant";
 
+<<<<<<< HEAD
         // Call Groq
         const chatCompletion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
             model: modelToUse,
         });
+=======
+        // 🛡️ ENFORCED THRESHOLD CHECK
+        if (maxSimilarity < threshold) {
+            bestRoute = "cheap";
+            console.log(`🛡️ Threshold not met (${maxSimilarity.toFixed(2)} < ${threshold}). Falling back to cheap.`);
+        } else {
+            console.log(`🧠 Router Decision: ${bestRoute} (Score: ${maxSimilarity.toFixed(2)})`);
+        }
+>>>>>>> 4537e85574c345dcb00d039b725306bd7f098692
 
         const generatedText = chatCompletion.choices[0]?.message?.content;
         const usage = chatCompletion.usage;
@@ -110,12 +131,31 @@ exports.smartProxy = onRequest({
         // Update Metrics (User + Global)
         await updateMetricsTransaction(userId, tokens, calculatedSavings);
 
+<<<<<<< HEAD
         return res.status(200).json({ response: generatedText, modelUsed: modelToUse });
 
     } catch (error) {
         console.error("❌ Error:", error);
         return res.status(500).json({ error: error.message });
     }
+=======
+        const generatedText = chatCompletion.choices[0]?.message?.content;
+        const usage = chatCompletion.usage;
+        
+        // Basic Cost Saving Calculation
+        const tokens = usage.total_tokens;
+        const calculatedSavings = (tokens / 1000000) * 5.00; 
+
+        // 4. Update Metrics (User + Global)
+        await updateMetricsTransaction(userId, tokens, calculatedSavings);
+
+        return res.status(200).json({ response: generatedText, modelUsed: modelToUse });
+
+    } catch (error) {
+        console.error("❌ Error:", error);
+        return res.status(500).json({ error: error.message });
+    }
+>>>>>>> 4537e85574c345dcb00d039b725306bd7f098692
 });
 
 // Endpoint that writes assistant replies into Firestore
@@ -124,9 +164,13 @@ exports.analyzePrompt = onRequest({
     memory: "1GiB",
     secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
+<<<<<<< HEAD
     setSecurityHeaders(res);
     const { userId, chatId, prompt } = req.body;
     if (!userId || !chatId || !prompt) return res.status(400).send('missing fields');
+=======
+    setSecurityHeaders(res);
+>>>>>>> 4537e85574c345dcb00d039b725306bd7f098692
 
     try {
         // --- ADD ROUTING LOGIC HERE TOO ---
@@ -134,9 +178,15 @@ exports.analyzePrompt = onRequest({
         const userInputEmbedding = await pipe(prompt, { pooling: 'mean', normalize: true });
         const userVec = userInputEmbedding.data;
 
+<<<<<<< HEAD
         let bestRoute = "cheap";
         let maxSimilarity = -1;
         const threshold = 0.5;
+=======
+    try {
+        const model = "llama-3.1-8b-instant";
+        const reply = await generateResponse(prompt, model);
+>>>>>>> 4537e85574c345dcb00d039b725306bd7f098692
 
         for (const [routeName, examples] of Object.entries(trainedEmbeddings)) {
             for (const example of examples) {
@@ -148,6 +198,7 @@ exports.analyzePrompt = onRequest({
             }
         }
 
+<<<<<<< HEAD
         // --- MODEL SELECTION ---
         const model = (bestRoute === "smart") ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant";
         
@@ -180,27 +231,38 @@ exports.summarizeChat = onRequest({
 }, async (req, res) => {
     const { userId, chatId } = req.body;
     if (!userId || !chatId) return res.status(400).send("Missing userId or chatId");
+=======
+        return res.json({ success: true, model, reply });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send(err.message);
+    }
+});
 
-    // Use 'db' which you initialized at the top of your file
+// --------------------------------------------------
+// FIRESTORE TRIGGER (AUTOMATED SUMMARIZATION)
+// --------------------------------------------------
+exports.onNewMessage = onDocumentCreated('users/{userId}/chats/{chatId}/messages/{messageId}', async (event) => {
+    const { userId, chatId } = event.params;
+    console.log(`🆕 New message in chat ${chatId} by user ${userId}`);
+>>>>>>> 4537e85574c345dcb00d039b725306bd7f098692
+
     const messagesRef = db.collection("users")
-                          .doc(userId)
-                          .collection("chats")
-                          .doc(chatId)
-                          .collection("messages");
+        .doc(userId)
+        .collection("chats")
+        .doc(chatId)
+        .collection("messages");
 
     try {
-        // 1. Fetch all messages
+        // 1. Fetch all messages to summarize
         const snapshot = await messagesRef.orderBy("timestamp").get();
         
-        // ⚠️ FIX: Changed .content to .text to match your analyzePrompt format
         const chatHistory = snapshot.docs
-            .map(doc => doc.data().text || doc.data().content) 
-            .filter(text => text) // Remove empty messages
+            .map(doc => doc.data().text) 
+            .filter(text => text)
             .join("\n");
 
-        if (!chatHistory) {
-            return res.status(200).json({ summary: "No messages to summarize yet." });
-        }
+        if (!chatHistory) return;
 
         // 2. Call Groq for summary
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -220,39 +282,8 @@ exports.summarizeChat = onRequest({
             lastSummarized: admin.firestore.FieldValue.serverTimestamp()
         });
 
-        console.log(`✅ Summary generated for chat ${chatId}`);
-
-        return res.status(200).json({ summary });
+        console.log(`✅ Summary auto-generated for chat ${chatId}`);
     } catch (error) {
-        console.error("❌ Summarize Error:", error);
-        return res.status(500).json({ error: error.message });
+        console.error("❌ Auto-summarize Error:", error);
     }
 });
-
-
-async function updateMetricsTransaction(userId, tokens, savings) {
-    const userStatsRef = db.collection("users").doc(userId).collection("stats").doc("usage");
-    const globalStatsRef = db.collection("stats").doc("global");
-
-    // ... inside updateMetricsTransaction ...
-
-await db.runTransaction(async (transaction) => {
-    // Update User
-    transaction.set(userStatsRef, {
-        tokensUsed: FieldValue.increment(tokens), // Change here
-        costSaved: FieldValue.increment(savings),  // Change here
-        queriesProcessed: FieldValue.increment(1)  // Change here
-    }, { merge: true });
-
-    // Update Global
-    transaction.set(globalStatsRef, {
-        tokensUsed: FieldValue.increment(tokens), // Change here
-        costSaved: FieldValue.increment(savings),  // Change here
-        queriesProcessed: FieldValue.increment(1)  // Change here
-    }, { merge: true });
-});
-}
-function setSecurityHeaders(res) {
-    res.set("Cross-Origin-Opener-Policy", "same-origin");
-    res.set("Cross-Origin-Embedder-Policy", "require-corp");
-}

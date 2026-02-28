@@ -5,8 +5,7 @@ import PromptPage from './components/PromptPage';
 import Login from './Login';
 
 import { auth, db } from './firebase';
-import { onAuthStateChanged, signOut, deleteUser,signInWithRedirect, 
-  getRedirectResult, } from 'firebase/auth';
+import { onAuthStateChanged, signOut, deleteUser } from 'firebase/auth';
 import { doc, getDoc, setDoc, onSnapshot, collection, query, orderBy, addDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 
 function App() {

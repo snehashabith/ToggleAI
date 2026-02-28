@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Menu, Plus, Trash2, LogOut, Trash, MessageSquare, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 function Sidebar({
