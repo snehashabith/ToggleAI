@@ -1,3 +1,117 @@
+TEAM - BOURNVITA
+MEMBERS:
+JOVITA ROSE AMBADAN
+SNEHA SHABITH
+
+
+
+Project Name:
+ToggleAI Serverless Intelligent Routing: Intelligently routes user prompts to the most cost-effective and capable AI model using semantic search within Firebase Functions, exclusively using Groq's high-performance inference engine.
+
+Project Description: 
+In modern AI development, developers face a rigid trade-off: Capability vs. Cost/Speed. High-End Models offer excellent reasoning but higher latency, while Small Models are fast and cheap but struggle with complex tasks. Developers often default to expensive models for all queries, leading to unnecessary API spending.
+ToggleAI AI acts as an intelligent intermediary using Groq's blazing-fast infrastructure. It analyzes incoming prompts semantically before sending them to an LLM.
+
+Tech StackRuntime: Node.js (Firebase Functions v2)
+Database: Cloud Firestore
+Routing Intelligence: transformers.js (all-MiniLM-L6-v2 running locally on the function)
+LLM Provider: Groq SDK
+
+Features
+Semantic Routing: Uses local embeddings to determine query complexity before invoking an LLM, ensuring complex tasks get powerful models and simple tasks remain fast and cheap.Groq Multi-Model 
+Routing: Seamlessly toggles between Groq's llama-3.3-70b-versatile (for reasoning) and llama-3.1-8b-instant (for speed).
+Automated Chat Summarization: Utilizes Firestore triggers (onDocumentCreated) to automatically summarize chat histories for context.
+Real-time Cost & Token Tracking: Tracks usage and estimated savings in Firestore transactions for a real-time dashboard.
+
+How It Works (Technical Details)
+Prompt Submission: The client sends a JSON body to the /smartProxy endpoint.
+Semantic Analysis: transformers.js generates a vector representation of the user prompt locally within the function.
+Vector Similarity: The local embedder compares the prompt vector against pre-trained trained_embeddings.json to decide the best route.
+API Routing: The function uses the dynamic model selection logic to call the appropriate Groq model (versatile or instant).
+Metrics Calculation: Token usage, cost savings, and response time are updated in Firestore transactions.
+
+4-Model Routing Strategy (All Groq)
+Route          Model                         UseCase                                         Strength
+Smart          llama-3.3-70b-versatile       Complex reasoning, coding, data analysis        Maximum intelligence
+Smart          llama-3.3-70b-versatile       Complex tasks requiring speed, general purpose  Speed + Capability
+Cheap          llama-3.1-8b-instant          Instant chat, basic classification, FAQs        Ultra-Fast Latency
+Cheap          llama-3.1-8b-instant          High-volume tasks, simple chat, fast summaries  Speed & Low Cost🚀 
+
+Installation & Run Commands
+PrerequisitesFirebase CLI installed (npm install -g firebase-tools)
+API Key for GroqInstallationBash# Clone the repository
+
+git clone https://github.com/your-repo/smart-proxy-ai.git
+
+# Install dependencies
+cd functions
+npm install
+
+# Setup API Key in Firebase Secrets
+firebase functions:secrets:set GROQ_API_KEY
+
+Running the EmulatorBashfirebase emulators:start
+
+API Documentation
+POST /smartProxy
+Routes a prompt and returns the AI response and metrics.
+Body:JSON{
+  "prompt": "Write a Python script to analyze CSV data",
+  "userId": "user_123"
+}
+Returns:JSON{
+  "response": "...",
+  "modelUsed": "groq/llama-3.3-70b-versatile",
+  "metrics": {
+    "tokensUsed": 150,
+    "costSaved": 0.05,
+    "queriesProcessed": 1
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
