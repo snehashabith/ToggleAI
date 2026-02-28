@@ -67,7 +67,6 @@ exports.smartProxy = onRequest({
     memory: "512MiB",
     secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
-<<<<<<< HEAD
     setSecurityHeaders(res);
     const { prompt, userId } = req.body;
     if (!prompt || !userId) return res.status(400).send("Missing prompt or userId");
@@ -77,12 +76,6 @@ exports.smartProxy = onRequest({
         const pipe = await getEmbedder();
         const userInputEmbedding = await pipe(prompt, { pooling: 'mean', normalize: true });
         const userVec = userInputEmbedding.data;
-=======
-    setSecurityHeaders(res);
-
-    const { prompt, userId } = req.body;
-    if (!prompt || !userId) return res.status(400).send("Missing prompt or userId");
->>>>>>> 4537e85574c345dcb00d039b725306bd7f098692
 
         let bestRoute = "cheap";
         let maxSimilarity = -1;
@@ -105,21 +98,11 @@ exports.smartProxy = onRequest({
         // CORRECTLY USES THE ROUTE
         let modelToUse = (bestRoute === "smart") ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant";
 
-<<<<<<< HEAD
         // Call Groq
         const chatCompletion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
             model: modelToUse,
         });
-=======
-        // 🛡️ ENFORCED THRESHOLD CHECK
-        if (maxSimilarity < threshold) {
-            bestRoute = "cheap";
-            console.log(`🛡️ Threshold not met (${maxSimilarity.toFixed(2)} < ${threshold}). Falling back to cheap.`);
-        } else {
-            console.log(`🧠 Router Decision: ${bestRoute} (Score: ${maxSimilarity.toFixed(2)})`);
-        }
->>>>>>> 4537e85574c345dcb00d039b725306bd7f098692
 
         const generatedText = chatCompletion.choices[0]?.message?.content;
         const usage = chatCompletion.usage;
@@ -131,14 +114,12 @@ exports.smartProxy = onRequest({
         // Update Metrics (User + Global)
         await updateMetricsTransaction(userId, tokens, calculatedSavings);
 
-<<<<<<< HEAD
         return res.status(200).json({ response: generatedText, modelUsed: modelToUse });
 
     } catch (error) {
         console.error("❌ Error:", error);
         return res.status(500).json({ error: error.message });
     }
-=======
         const generatedText = chatCompletion.choices[0]?.message?.content;
         const usage = chatCompletion.usage;
         
@@ -151,11 +132,7 @@ exports.smartProxy = onRequest({
 
         return res.status(200).json({ response: generatedText, modelUsed: modelToUse });
 
-    } catch (error) {
-        console.error("❌ Error:", error);
-        return res.status(500).json({ error: error.message });
-    }
->>>>>>> 4537e85574c345dcb00d039b725306bd7f098692
+   
 });
 
 // Endpoint that writes assistant replies into Firestore
@@ -164,13 +141,9 @@ exports.analyzePrompt = onRequest({
     memory: "1GiB",
     secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
-<<<<<<< HEAD
     setSecurityHeaders(res);
     const { userId, chatId, prompt } = req.body;
     if (!userId || !chatId || !prompt) return res.status(400).send('missing fields');
-=======
-    setSecurityHeaders(res);
->>>>>>> 4537e85574c345dcb00d039b725306bd7f098692
 
     try {
         // --- ADD ROUTING LOGIC HERE TOO ---
@@ -178,15 +151,9 @@ exports.analyzePrompt = onRequest({
         const userInputEmbedding = await pipe(prompt, { pooling: 'mean', normalize: true });
         const userVec = userInputEmbedding.data;
 
-<<<<<<< HEAD
         let bestRoute = "cheap";
         let maxSimilarity = -1;
         const threshold = 0.5;
-=======
-    try {
-        const model = "llama-3.1-8b-instant";
-        const reply = await generateResponse(prompt, model);
->>>>>>> 4537e85574c345dcb00d039b725306bd7f098692
 
         for (const [routeName, examples] of Object.entries(trainedEmbeddings)) {
             for (const example of examples) {
@@ -198,7 +165,6 @@ exports.analyzePrompt = onRequest({
             }
         }
 
-<<<<<<< HEAD
         // --- MODEL SELECTION ---
         const model = (bestRoute === "smart") ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant";
         
@@ -231,21 +197,6 @@ exports.summarizeChat = onRequest({
 }, async (req, res) => {
     const { userId, chatId } = req.body;
     if (!userId || !chatId) return res.status(400).send("Missing userId or chatId");
-=======
-        return res.json({ success: true, model, reply });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).send(err.message);
-    }
-});
-
-// --------------------------------------------------
-// FIRESTORE TRIGGER (AUTOMATED SUMMARIZATION)
-// --------------------------------------------------
-exports.onNewMessage = onDocumentCreated('users/{userId}/chats/{chatId}/messages/{messageId}', async (event) => {
-    const { userId, chatId } = event.params;
-    console.log(`🆕 New message in chat ${chatId} by user ${userId}`);
->>>>>>> 4537e85574c345dcb00d039b725306bd7f098692
 
     const messagesRef = db.collection("users")
         .doc(userId)
