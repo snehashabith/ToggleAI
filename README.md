@@ -30,6 +30,8 @@ Vector Similarity: The local embedder compares the prompt vector against pre-tra
 API Routing: The function uses the dynamic model selection logic to call the appropriate Groq model (versatile or instant).
 Metrics Calculation: Token usage, cost savings, and response time are updated in Firestore transactions.
 
+Demo Video and Screenshots : https://drive.google.com/drive/folders/155JQZUsCWEAUtOyurBcJprSdlG2P64jJ?usp=sharing
+
 4-Model Routing Strategy (All Groq)
 Route          Model                         UseCase                                         Strength
 Smart          llama-3.3-70b-versatile       Complex reasoning, coding, data analysis        Maximum intelligence
