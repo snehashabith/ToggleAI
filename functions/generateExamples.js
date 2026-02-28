@@ -1,56 +1,51 @@
-const { pipeline } = require('@xenova/transformers');
 const fs = require('fs');
-const path = require('path');
+const { pipeline } = require('@xenova/transformers');
 
-const routes = {
+// 💡 Define your training examples
+const trainingData = {
     "smart": [
-        "Explain quantum entanglement step by step",
-        "Write a complex Python script for data analysis",
-        "Analyze the economic impact of the 2008 financial crisis",
-        "How do I optimize this SQL query for high load?",
-        "Compare the philosophical viewpoints of Plato and Aristotle",
-        "Draft a detailed project plan for a new software release",
-        "What are the implications of the new AI regulations?",
-        "Solve this complex differential equation",
-        "Evaluate the security risks of this network architecture",
-        "How can I restructure this company to be more efficient?"
+        "Explain the architectural differences between SQL and NoSQL databases.",
+        "Write a React hook for handling complex form state with validation.",
+        "What are the implications of quantum computing on modern RSA encryption?",
+        "Design a system for real-time collaborative document editing using CRDTs.",
+        "Refactor this Python script to use asynchronous programming and improve performance.",
+        "Explain the concept of monads in functional programming with examples.",
+        "How do I implement a custom authentication provider in NextAuth.js?",
+        "Solve this calculus problem: Find the derivative of f(x) = x^2 * sin(x)."
     ],
     "cheap": [
-        "What is the capital of France?",
-        "Tell me a joke",
+        "Hi, how are you?",
+        "Tell me a joke.",
         "What time is it?",
-        "Summarize this text",
-        "Is it raining in London?",
-        "How do I make coffee?",
-        "Translate 'hello' to Spanish",
-        "What is the definition of AI?",
-        "Give me a quick recipe for pancakes",
-        "What is 2 + 2?"
+        "Translate 'hello' to Spanish.",
+        "Summarize this short paragraph.",
+        "Give me a recipe for chocolate chip cookies.",
+        "Who is the president of France?",
+        "Write a quick email subject line for a meeting."
     ]
 };
 
 async function generate() {
-    console.log("Loading embedding model...");
-    // Use the same model as the cloud function
-    const embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    console.log("🚀 Loading embedding model...");
+    const pipe = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
 
-    let trainedData = {};
+    const result = {};
 
-    for (const [routeName, utterances] of Object.entries(routes)) {
-        trainedData[routeName] = [];
-        console.log(`Embedding examples for: ${routeName}`);
-        for (const utterance of utterances) {
-            const embedding = await embedder(utterance, { pooling: 'mean', normalize: true });
-            trainedData[routeName].push({
-                text: utterance,
-                vector: Array.from(embedding.data) // Convert to standard array
+    for (const [routeName, texts] of Object.entries(trainingData)) {
+        console.log(`🧠 Processing route: ${routeName}...`);
+        result[routeName] = [];
+
+        for (const text of texts) {
+            const output = await pipe(text, { pooling: 'mean', normalize: true });
+            result[routeName].push({
+                text: text,
+                vector: Array.from(output.data) // Convert Tensor to standard JS array
             });
         }
     }
 
-    const outputPath = path.join(__dirname, 'trained_embeddings.json');
-    fs.writeFileSync(outputPath, JSON.stringify(trainedData));
-    console.log(`✅ Embeddings saved to ${outputPath}`);
+    fs.writeFileSync('trained_embeddings.json', JSON.stringify(result, null, 2));
+    console.log("✅ trained_embeddings.json has been updated!");
 }
 
 generate();

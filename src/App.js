@@ -97,7 +97,7 @@ function App() {
       setActiveChat(currentChatId);
     }
 
-    // 2. Add User Message
+    // 2. Add User Message to Firestore
     const msgsRef = collection(db, 'users', user.id, 'chats', currentChatId, 'messages');
     await addDoc(msgsRef, {
       text,
@@ -105,13 +105,12 @@ function App() {
       timestamp: new Date(),
     });
 
-    // 3. Notify backend – receive reply text in response so we can display it immediately
+    // 3. Notify backend
     try {
       const resp = await fetch(
         process.env.REACT_APP_ANALYZE_ENDPOINT ||
           'https://analyzeprompt-5uc3k4s34a-uc.a.run.app',
         {
-          cors: true,
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -121,16 +120,30 @@ function App() {
           }),
         }
       );
+
       const data = await resp.json();
+
+      // --- METRIC INTEGRATION START ---
+      // If your backend returns the 'metrics' object, update the dashboard state immediately
+      if (data.metrics) {
+        setSavings(prev => ({
+          ...prev,
+          tokensUsed: (prev.tokensUsed || 0) + data.metrics.tokensUsed,
+          costSaved: (prev.costSaved || 0) + Number(data.metrics.costSaved),
+          queriesProcessed: (prev.queriesProcessed || 0) + 1,
+          timeSavedSeconds: (prev.timeSavedSeconds || 0) + (data.metrics.timeSavedSeconds || 0)
+        }));
+      }
+      // --- METRIC INTEGRATION END ---
+
       if (data.reply) {
-        // optimistic display; Firestore listener will eventually sync with the same message
         setChatMessages((prev) => [
           ...prev,
           {
             id: `temp-${Date.now()}`,
             text: data.reply,
             sender: 'assistant',
-            model: data.model,
+            model: data.modelUsed || data.model, // Support both naming conventions
             timestamp: new Date(),
           },
         ]);
@@ -138,9 +151,20 @@ function App() {
     } catch (err) {
       console.error('backend error', err);
     }
-
-    // 4. (optional) Person A's backend will listen to this collection and add the 'assistant' reply
   };
+
+const handleDeleteChat = (chatId) => {
+  // 1. Optimistically remove from the local 'chats' state
+  setChats((prevChats) => prevChats.filter(chat => chat.id !== chatId));
+
+  // 2. If the user is currently looking at the deleted chat, reset the view
+  if (activeChat === chatId) {
+    setActiveChat(null);
+    setChatMessages([]);
+  }
+
+  console.log(`UI Updated: Chat ${chatId} removed from sidebar.`);
+};
 
   const handleLogout = () => signOut(auth);
 
@@ -170,6 +194,7 @@ function App() {
         onSelectChat={setActiveChat}
         onLogout={handleLogout}
         onDeleteAccount={handleDeleteAccount}
+        onDeleteChat={handleDeleteChat}
       />
       <main className={`main-content ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
         <PromptPage

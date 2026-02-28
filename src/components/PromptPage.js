@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Menu, BarChart3, MessageCircle, Zap, Clock, DollarSign } from 'lucide-react';
+import { Send, Menu } from 'lucide-react'; // Ensure Menu is used to fix the 'unused' warning
 import { motion } from 'framer-motion';
 import SavingsDashboard from './SavingsDashboard';
 
 function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, chatMessages = [], onSendMessage, onAddChat }) {
   const [messages, setMessages] = useState(chatMessages);
-
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
@@ -16,9 +15,8 @@ function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, chatMes
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isLoading]);
 
-  // sync with messages coming from parent listener
   useEffect(() => {
     setMessages(chatMessages);
   }, [chatMessages]);
@@ -29,7 +27,7 @@ function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, chatMes
 
     setIsLoading(true);
     try {
-      // parent returns a promise that resolves once the backend has been notified
+      // onSendMessage should update the 'savings' prop in the parent state
       await onSendMessage(inputValue);
       setInputValue('');
     } finally {
@@ -51,12 +49,13 @@ function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, chatMes
           </button>
           <h1 className="page-title">ToggleAI Proxy</h1>
         </div>
+        
+        {/* METRIC INTEGRATION: Passing the 'savings' prop here */}
         <SavingsDashboard savings={savings} />
       </div>
 
       {/* Chat Container */}
       <div className="chat-container">
-        {/* Messages */}
         <div className="messages-list">
           <motion.div
             initial={{ opacity: 0 }}
@@ -72,7 +71,7 @@ function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, chatMes
             ) : (
               messages.map((message, index) => (
                 <motion.div
-                  key={message.id}
+                  key={message.id || index}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -80,7 +79,10 @@ function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, chatMes
                 >
                   {message.sender === 'assistant' ? (
                     <div className="assistant-message-wrapper">
-                      <div className="model-badge">{message.model}</div>
+                      {/* METRIC INTEGRATION: Displaying the model returned by the Proxy */}
+                      <div className="model-badge">
+                        {message.model || 'Smart Router'}
+                      </div>
                       <div className="message-content assistant">
                         <p>{message.text}</p>
                       </div>
@@ -92,8 +94,8 @@ function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, chatMes
                   )}
                   <span className="message-time">
                     {message.timestamp 
-  ? (message.timestamp.toDate ? message.timestamp.toDate() : new Date(message.timestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-  : 'Sending...'}
+                      ? (message.timestamp.toDate ? message.timestamp.toDate() : new Date(message.timestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                      : 'Sending...'}
                   </span>
                 </motion.div>
               ))
@@ -106,12 +108,10 @@ function PromptPage({ sidebarOpen, onToggleSidebar, savings, activeChat, chatMes
                 className="message assistant loading"
               >
                 <div className="assistant-message-wrapper">
-                  <div className="model-badge">Thinking...</div>
+                  <div className="model-badge">Analyzing Complexity...</div>
                   <div className="message-content assistant">
                     <div className="loading-dots">
-                      <span></span>
-                      <span></span>
-                      <span></span>
+                      <span></span><span></span><span></span>
                     </div>
                   </div>
                 </div>

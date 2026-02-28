@@ -50,111 +50,129 @@ function cosineSimilarity(vecA, vecB) {
 }
 
 // 🚀 Main Function: smartProxy
+// ... (keep your helpers: getEmbedder, cosineSimilarity, updateMetricsTransaction) ...
+
+// --------------------------------------------------
+// ENDPOINTS
+// --------------------------------------------------
+
+// Main Function: smartProxy
 exports.smartProxy = onRequest({
-    cors: true,
-    timeoutSeconds: 60,
-    memory: "512MiB",
-    secrets: ["GROQ_API_KEY"]
+    cors: true,
+    timeoutSeconds: 60,
+    memory: "512MiB",
+    secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
-    // set COOP/COEP headers before doing anything else
-    setSecurityHeaders(res);
+    setSecurityHeaders(res);
+    const { prompt, userId } = req.body;
+    if (!prompt || !userId) return res.status(400).send("Missing prompt or userId");
 
-    // 💡 Expecting userId in the request body
-    const { prompt, userId } = req.body;
-    if (!prompt || !userId) return res.status(400).send("Missing prompt or userId");
+    try {
+        // --- ROUTING LOGIC ---
+        const pipe = await getEmbedder();
+        const userInputEmbedding = await pipe(prompt, { pooling: 'mean', normalize: true });
+        const userVec = userInputEmbedding.data;
 
-    try {
-        // 1. Semantic Routing
-        const pipe = await getEmbedder();
-        const userInputEmbedding = await pipe(prompt, { pooling: 'mean', normalize: true });
-        const userVec = userInputEmbedding.data;
+        let bestRoute = "cheap";
+        let maxSimilarity = -1;
+        const threshold = 0.5; // <--- Adjust this if needed
 
-        let bestRoute = "cheap";
-        let maxSimilarity = -1;
-        const threshold = 0.5;
+        for (const [routeName, examples] of Object.entries(trainedEmbeddings)) {
+            for (const example of examples) {
+                const similarity = cosineSimilarity(userVec, example.vector);
+                if (similarity > maxSimilarity) {
+                    maxSimilarity = similarity;
+                    bestRoute = routeName;
+                }
+            }
+        }
+        
+        console.log(`🧠 Router Decision: ${bestRoute} (Score: ${maxSimilarity.toFixed(2)})`);
 
-        for (const [routeName, examples] of Object.entries(trainedEmbeddings)) {
-            for (const example of examples) {
-                const similarity = cosineSimilarity(userVec, example.vector);
-                if (similarity > maxSimilarity) {
-                    maxSimilarity = similarity;
-                    bestRoute = routeName;
-                }
-            }
-        }
+        // --- MODEL SELECTION ---
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        // CORRECTLY USES THE ROUTE
+        let modelToUse = (bestRoute === "smart") ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant";
 
-        console.log(`🧠 Router Decision: ${bestRoute} (Score: ${maxSimilarity.toFixed(2)})`);
+        // Call Groq
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [{ role: "user", content: prompt }],
+            model: modelToUse,
+        });
 
-        // 2. Model Selection
-        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-        let modelToUse = (bestRoute === "smart") ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant";
+        const generatedText = chatCompletion.choices[0]?.message?.content;
+        const usage = chatCompletion.usage;
+        
+        // Basic Cost Saving Calculation
+        const tokens = usage.total_tokens;
+        const calculatedSavings = (tokens / 1000000) * (bestRoute === "smart" ? 5.00 : 0.50); 
 
-        // 3. Call Groq
-        const chatCompletion = await groq.chat.completions.create({
-            messages: [{ role: "user", content: prompt }],
-            model: modelToUse,
-        });
+        // Update Metrics (User + Global)
+        await updateMetricsTransaction(userId, tokens, calculatedSavings);
 
-        const generatedText = chatCompletion.choices[0]?.message?.content;
-        console.log("Model Response (${modelToUse}):",generatedText);
-        const usage = chatCompletion.usage;
-        
-        // 💡 Basic Cost Saving Calculation (Compared to expensive model)
-        const tokens = usage.total_tokens;
-        const calculatedSavings = (tokens / 1000000) * 5.00; 
+        return res.status(200).json({ response: generatedText, modelUsed: modelToUse });
 
-        // 4. Update Metrics (User + Global) using Transaction
-        await updateMetricsTransaction(userId, tokens, calculatedSavings);
-
-        return res.status(200).json({ response: generatedText, modelUsed: modelToUse });
-
-    } catch (error) {
-        console.error("❌ Error:", error);
-        return res.status(500).json({ error: error.message });
-    }
+    } catch (error) {
+        console.error("❌ Error:", error);
+        return res.status(500).json({ error: error.message });
+    }
 });
-// alternative endpoint that also writes assistant replies into Firestore (HTTP trigger)
-// make sure GROQ_API_KEY is available to this function as well
+
+// Endpoint that writes assistant replies into Firestore
 exports.analyzePrompt = onRequest({
-    cors: true,
-    memory: "1GiB",
-    secrets: ["GROQ_API_KEY"]
+    cors: true,
+    memory: "1GiB",
+    secrets: ["GROQ_API_KEY"]
 }, async (req, res) => {
-    // add security headers for COOP/COEP
-    setSecurityHeaders(res);
+    setSecurityHeaders(res);
+    const { userId, chatId, prompt } = req.body;
+    if (!userId || !chatId || !prompt) return res.status(400).send('missing fields');
 
-    const { userId, chatId, prompt } = req.body;
-    if (!userId || !chatId || !prompt) return res.status(400).send('missing fields');
+    try {
+        // --- ADD ROUTING LOGIC HERE TOO ---
+        const pipe = await getEmbedder();
+        const userInputEmbedding = await pipe(prompt, { pooling: 'mean', normalize: true });
+        const userVec = userInputEmbedding.data;
 
-    try {
-        // the earlier version referenced `modelToUse`, which isn’t defined
-        // in this scope; it crashes with a ReferenceError and the client
-        // never receives a 200 response.  choose a sensible default here
-        // (you can extend the logic later if you want dynamic routing).
-        const model = "llama-3.1-8b-instant";
-        const reply = await generateResponse(prompt, model);
+        let bestRoute = "cheap";
+        let maxSimilarity = -1;
+        const threshold = 0.5;
 
-        await db
-            .collection('users')
-            .doc(userId)
-            .collection('chats')
-            .doc(chatId)
-            .collection('messages')
-            .add({
-                text: reply,
-                sender: 'assistant',
-                model,
-                timestamp: admin.firestore.FieldValue.serverTimestamp(),
-            });
+        for (const [routeName, examples] of Object.entries(trainedEmbeddings)) {
+            for (const example of examples) {
+                const similarity = cosineSimilarity(userVec, example.vector);
+                if (similarity > maxSimilarity) {
+                    maxSimilarity = similarity;
+                    bestRoute = routeName;
+                }
+            }
+        }
 
-        // return the text so the client can display immediately if it wants
-        return res.json({ success: true, model, reply });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).send(err.message);
-    }
+        // --- MODEL SELECTION ---
+        const model = (bestRoute === "smart") ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant";
+        
+        // Use the dynamic model
+        const reply = await generateResponse(prompt, model);
+
+        await db
+            .collection('users')
+            .doc(userId)
+            .collection('chats')
+            .doc(chatId)
+            .collection('messages')
+            .add({
+                text: reply,
+                sender: 'assistant',
+                model,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+        return res.json({ success: true, model, reply });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send(err.message);
+    }
 });
-
 exports.summarizeChat = onRequest({
     cors: true,                 
     secrets: ["GROQ_API_KEY"],  

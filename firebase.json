@@ -32,20 +32,27 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "public": "buildnp",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
+    "headers": [
+      {
+        "source": "/**",
+        "headers": [
+          {
+            "key": "Cross-Origin-Opener-Policy",
+            "value": "same-origin-allow-popups"
+          }
+        ]
+      }
+    ]
+  },
     "rewrites": [
       {
         "source": "**",
         "destination": "/index.html"
       }
     ]
-  },
+  ,
   "auth": {
     "providers": {}
   }
 }
+
